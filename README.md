@@ -181,16 +181,29 @@ The **data flow through the backend** for key operations can be summarized as fo
 ```mermaid
 sequenceDiagram
     participant User
-    participant Frontend as VA.gov Claim Status UI (React)
-    participant VetsAPI as Vets API (Rails)
-    participant LighthouseAPI as Lighthouse Benefits Claims API
-    participant BGS as VBA Claims Database (BGS)
-    participant Caseflow as Caseflow Appeals API (BVA)
-    User->>Frontend: Open "Track Claims" page
-    Frontend->>VetsAPI: GET /v0/benefits_claims (with session cookie) ([vets-website/src/applications/claims-status/actions/index.js at main · department-of-veterans-affairs/vets-website · GitHub](https://github.com/department-of-veterans-affairs/vets-website/blob/main/src/applications/claims-status/actions/index.js#:~:text=dispatch%28))
-    Frontend->>VetsAPI: GET /v0/appeals (with session cookie) ([vets-website/src/applications/claims-status/actions/index.js at main · department-of-veterans-affairs/vets-website · GitHub](https://github.com/department-of-veterans-affairs/vets-website/blob/main/src/applications/claims-status/actions/index.js#:~:text=dispatch%28))
-    VetsAPI->>BenefitsClaimsService: get_claims(user.icn) ([
-  Class: BenefitsClaims::Service
+    participant Frontend as Claim Status UI
+    participant VetsAPI as Vets API
+    participant LighthouseAPI as Lighthouse Claims API
+    participant LighthouseDocAPI as Lighthouse Documents API
+    alt Submit Evidence Waiver (5103 Form)
+        User->>Frontend: Click "Submit 5103 Waiver"
+        Frontend->>VetsAPI: POST /v0/benefits_claims/{claimId}/submit5103
+        VetsAPI->>BenefitsClaimsService: submit5103(claimId, trackedItem)
+        BenefitsClaimsService->>LighthouseAPI: POST {ICN}/claims/{claimId}/5103 (JSON payload)
+        LighthouseAPI-->VetsAPI: 200 OK (waiver accepted)
+        VetsAPI-->>Frontend: 200 OK, confirmation returned
+        Frontend->>User: Show success notice ("Evidence waiver received")
+    else Upload Supporting Document
+        User->>Frontend: Attach file & click "Upload"
+        Frontend->>VetsAPI: POST /v0/benefits_claims/{claimId}/benefits_documents (multipart form)
+        VetsAPI->>LighthouseDocAPI: POST /services/benefits-documents/v1/documents (file + JSON metadata)
+        LighthouseDocAPI->>VBMS: Save document to claim folder
+        LighthouseDocAPI-->>VetsAPI: 200 OK (document uploaded)
+        VetsAPI-->>Frontend: 200 OK, upload success response
+        Frontend->>User: Show success alert ("We received your file on [date]")
+    end
+```
+
   
     — Documentation for department-of-veterans-affairs/vets-api (master)
   
