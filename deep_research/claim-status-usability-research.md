@@ -63,40 +63,14 @@ In summary, since the Lighthouse migration, the VA claim status tool has made so
 ## Mermaid Diagram – Veteran’s Journey & Feedback Touchpoints
 
 ```mermaid
-flowchart LR
-    A[File Claim (online or via VSO)] --> B{Check Status on VA.gov?}
-    B --> |Logs into VA.gov| C[Claim Status: 'Received'<br/>(Initial Review Phase)]
-    B --> |Submitted HLR/Supplemental| C2[Claim Status: *No entry or just 'Received'*]
-    C --> D[Evidence Gathering Stage]
-    C2 --> D2[Supplemental/HLR in limbo<br/>(No detailed updates)]
-    D --> |Needs evidence from Veteran| E[**'Needed from You'** alert shown]
-    D --> |Needs evidence from Others| F[**'Needed from Others'** (e.g. VA exam) shown]
-    D --> |No additional evidence needed| G[5103 Notice period]
-    E --> H[Veteran uploads documents via tool]
-    H --> H2[<u>Feedback:</u> Some upload errors (filename issues),<br/>but generally convenient]
-    G --> I[Veteran sees 'Decide My Claim' option]
-    I --> |Veteran clicks button to waive 30 days| I2[5103 response submitted]
-    I --> |Veteran ignores (or has 30 days pass)| I3[5103 window elapses naturally]
-    F --> F2[<u>Feedback:</u> Often says 'VA Medical Facility'<br/>(meaning C&P exam) – clearer now after UI tweaks]
-    D2 --> J[<u>Feedback:</u> Veteran unsure of status – many call VA or VSO<br/>to learn if it's being worked]
-    D2 -.-> |Time passes (weeks)| K[If action taken (informal conference etc.), HLR status may appear]
-    D2 -.-> |Long silence| J
-    E --> E2[<u>Feedback:</u> Clear instructions & ability to add files improved usability]
-    G --> G2[<u>Feedback:</u> Confusion initially – many unsure about waiver vs waiting,<br/>community advises about the button]
-    subgraph Decision_and_Outcome
-      L[Claim Moves to Decision Phase] --> M[Preparing Decision Letter / Pending Decision Approval]
-      M --> N[Decision Complete – Claim Closed]
-      N --> O[**Decision letter available to download**]
-      N --> P[VA.gov shows new rating % and outcome]
-      O --> O2[<u>Feedback:</u> Major improvement – veterans get results immediately;<br/>rare cases letter lags a few hours]
-      P --> P2[<u>Feedback:</u> Veterans celebrate or plan next steps (many satisfied<br/>with instant info, reducing uncertainty)]
-    end
-    J -.-> |Frustration| O2
-    C2 -.-> |Veteran sees nothing for HLR| J
-    C --> " ":::dummy
-    C2 --> " ":::dummy
-    
-    classDef dummy fill:none,stroke:none
+graph LR
+    A[File Claim] --> B{Check Status}
+    B --> C[Received]
+    B --> D[Supplemental]
+    C --> E[Evidence Gathering]
+    D --> F[Limited Status Updates]
+    E --> G[Decision]
+    F --> G
 ```
 
 **Diagram Explanation:** The flowchart above illustrates a veteran’s journey using the VA claim status tool, highlighting points of user feedback (in *italicized quotes* or **bold** notes). On the **initial claim path** (left side), the veteran can log in and see their claim stages. During **Evidence Gathering** (Step 3), if VA needs something from the veteran, they will see a “Needed from You” alert and can upload documents (users found this convenient overall, aside from file naming quirks). If evidence is needed from others (like a C&P exam request), the tool shows “Needed from Others: VA Medical Facility” – veterans now better understand this means an exam is being scheduled, after recent UI text improvements. The **5103 notice period** is a crucial juncture: veterans can either wait 30 days or hit “Ask VA to Decide My Claim” to waive the wait. Many were initially unsure about this feature, but over time learned it’s a safe shortcut (the diagram notes community guidance on this). The claim then proceeds to **decision-making**. Once a decision is made (Step 8), the tool shines by instantly showing the result and providing a download link for the decision letter. This is perhaps the most celebrated feature – veterans no longer have to agonize waiting for mail. The diagram notes that this instant access significantly improved the user experience (as echoed in forum posts). 
