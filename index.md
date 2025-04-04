@@ -4,8 +4,8 @@ Welcome to the Cross Benefits Documentation hub. This site contains comprehensiv
 
 ## Available Documentation
 
-* [VA Claim Status Tool Architecture and Integration Analysis](va-claim-status-architecture.md)
-* [VA Claim Status Tool Usability Research](claim-status-usability-research.md)
+* [VA Claim Status Tool Architecture and Integration Analysis](deep_research/va-claim-status-architecture.md)
+* [VA Claim Status Tool Usability Research](deep_research/claim-status-usability-research.md)
 
 ## About This Project
 
