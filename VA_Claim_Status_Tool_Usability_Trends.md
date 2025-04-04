@@ -1,6 +1,3 @@
-Okay, here is the VA Claim Status Tool Usability analysis formatted according to GitHub Markdown guidelines.
-
-```markdown
 # VA Claim Status Tool Usability – Trends and User Feedback (Post-Lighthouse Migration)
 
 ## Table of Contents
