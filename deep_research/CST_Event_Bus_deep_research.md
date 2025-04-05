@@ -64,29 +64,33 @@ The development effort has spanned multiple repositories and workstreams. The pr
 ```mermaid
 flowchart TB
     subgraph "Planning & Infrastructure"
+      direction TB
       epic["Epic 77622:<br/>Decision Letter Notification"]:::epic
       subgraph Infra[""]
-        epic -- "Onboard new service to VSP" --> i90484["#90484: Onboard eventbus-gateway to platform"]:::issue
-        i90484 --> repo[(New **eventbus-gateway** GitHub repo)]:::repo
-        i90484 --> argocdPR[(VSP ArgoCD config PR)]:::pr
-        epic -- "Dev environment questions" --> i96083["#96083: Questions on infra setup"]:::issue
-        epic -- "Helm chart for deployment" --> i95680["#95680: Basic Helm chart for Gateway"]:::issue
-        i95680 --> manifests[(VSP application manifests repo<br/>(Helm configs))]:::repo
-        epic -- "Infra & CI/CD roadmap" --> i95689["#95689: CI/CD roadmap planning"]:::issue
+        direction TB
+        epic -- "Onboard new service to VSP" --> i90484["#90484: Onboard eventbus-gateway to platform&#8203;:contentReference[oaicite:26]{index=26}"]:::issue
+        i90484 --> repo[(New **eventbus-gateway** GitHub repo)&#8203;:contentReference[oaicite:27]{index=27}]:::repo
+        i90484 --> argocdPR[(VSP ArgoCD config PR)&#8203;:contentReference[oaicite:28]{index=28}]:::pr
+        epic -- "Dev environment questions" --> i96083["#96083: Questions on infra setup&#8203;:contentReference[oaicite:29]{index=29}"]:::issue
+        epic -- "Helm chart for deployment" --> i95680["#95680: Basic Helm chart for Gateway&#8203;:contentReference[oaicite:30]{index=30}"]:::issue
+        i95680 --> manifests[(VSP application manifests repo<br/>(Helm configs))&#8203;:contentReference[oaicite:31]{index=31}]:::repo
+        epic -- "Infra & CI/CD roadmap" --> i95689["#95689: CI/CD roadmap planning&#8203;:contentReference[oaicite:32]{index=32}"]:::issue
       end
     end
     subgraph "Backend Implementation"
+      direction TB
       vetsAPI[(vets-api code)]:::repo
       gateway[(eventbus-gateway code)]:::repo
       epic -- "Publish event or trigger notify" --> vetsAPI
       epic -- "Consume event & send email" --> gateway
-      gateway -- "Uses Karafka (Kafka consumer)" --> EEBTopic[(Kafka Topic<br/>"DecisionLetterAvailable")]
+      gateway -- "Uses Karafka (Kafka consumer)" --> EEBTopic[(Kafka Topic<br/>\"DecisionLetterAvailable\")]
       vetsAPI -- "Claim status & letter download APIs" --> BIPAPI[(BIP / EVSS APIs)]
     end
     subgraph "Frontend & Feature Flags"
+      direction TB
       vetsWeb[(vets-website code)]:::repo
       epic -- "UI: show decision letters link" --> vetsWeb
-      vetsWeb -- "Feature toggles" --> flipper[(Flipper flags<br/>cst_include_ddl_*)]
+      vetsWeb -- "Feature toggles&#8203;:contentReference[oaicite:33]{index=33}" --> flipper[(Flipper flags<br/>cst_include_ddl_*)]
     end
     classDef epic fill:#ffd,stroke:#333,stroke-width:1px;
     classDef issue fill:#e0f7ff,stroke:#0277BD,stroke-width:1px;
