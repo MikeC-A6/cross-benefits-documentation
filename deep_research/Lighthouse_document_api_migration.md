@@ -152,12 +152,12 @@ flowchart LR
     EVSS -.->|retired| VetsAPI
 
     subgraph "Key Migration Artifacts"
-        VetsAPI --- ClaimLettersCtrl[ClaimLetters Controller<br/>(vets-api)]
-        VetsAPI --- UploadCtrl[BenefitsDocuments Controller<br/>(vets-api)]
-        VetsAPI --- LighthouseClient[Lighthouse Docs Client<br/>(OAuth, service calls)]
+        VetsAPI --- ClaimLettersCtrl["ClaimLetters Controller<br/>(vets-api)"]
+        VetsAPI --- UploadCtrl["BenefitsDocuments Controller<br/>(vets-api)"]
+        VetsAPI --- LighthouseClient["Lighthouse Docs Client<br/>(OAuth, service calls)"]
         CST_Frontend --- LettersUI["Your Claim Letters page<br/>(React)"]
-        CST_Frontend --- UploadStatusUI[Upload Status indicators<br/>(React)]
-        CST_Frontend --- FlipperFlags[Feature Toggles<br/>cst_include_ddl_*, etc.]
+        CST_Frontend --- UploadStatusUI["Upload Status indicators<br/>(React)"]
+        CST_Frontend --- FlipperFlags["Feature Toggles<br/>cst_include_ddl_*, etc."]
     end
 ```
 
