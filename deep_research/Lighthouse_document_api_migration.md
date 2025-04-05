@@ -1,4 +1,3 @@
-```markdown
 # Claim Status Tool: Migration to Lighthouse Documents API
 
 ## Table of Contents
