@@ -137,25 +137,27 @@ Below is a simplified flowchart of key components and work items from this migra
 ```mermaid
 flowchart LR
     subgraph "Legacy Flow"
-    EVSS[VBMS_Connect & EVSS<br/>Document Service] -- Claim docs data --> CST_Frontend_Old[CST Frontend (Old)]
+        EVSS[VBMS_Connect & EVSS<br/>Document Service] -- "Claim docs data" --> CST_Frontend_Old[CST Frontend (Old)]
     end
 
     subgraph "Migrated Flow"
-    CST_Frontend[Claim Status Tool Frontend] -->|API request| VetsAPI
-    VetsAPI -->|calls| LighthouseAPI[Lighthouse Benefits Documents API]
-    LighthouseAPI -->|fetches| VBMS_eFolder[VBMS eFolder]
-    VBMS_eFolder -->|docs & PDFs| LighthouseAPI --> VetsAPI --> CST_Frontend
+        CST_Frontend[Claim Status Tool Frontend] -->|API request| VetsAPI
+        VetsAPI -->|calls| LighthouseAPI[Lighthouse Benefits Documents API]
+        LighthouseAPI -->|fetches| VBMS_eFolder[VBMS eFolder]
+        VBMS_eFolder -->|docs & PDFs| LighthouseAPI
+        LighthouseAPI --> VetsAPI
+        VetsAPI --> CST_Frontend
     end
 
-    EVSS -. retired .- VetsAPI
+    EVSS -.->|retired| VetsAPI
 
     subgraph "Key Migration Artifacts"
-    VetsAPI --- ClaimLettersCtrl[ClaimLetters Controller<br/>(vets-api)]
-    VetsAPI --- UploadCtrl[BenefitsDocuments Controller<br/>(vets-api)]
-    VetsAPI --- LighthouseClient[Lighthouse Docs Client<br/>(OAuth, service calls)]
-    CST_Frontend --- LettersUI[“Your Claim Letters” page<br/>(React)]
-    CST_Frontend --- UploadStatusUI[Upload Status indicators<br/>(React)]
-    CST_Frontend --- FlipperFlags[Feature Toggles<br/>cst_include_ddl_*, etc.]
+        VetsAPI --- ClaimLettersCtrl[ClaimLetters Controller<br/>(vets-api)]
+        VetsAPI --- UploadCtrl[BenefitsDocuments Controller<br/>(vets-api)]
+        VetsAPI --- LighthouseClient[Lighthouse Docs Client<br/>(OAuth, service calls)]
+        CST_Frontend --- LettersUI["Your Claim Letters" page<br/>(React)]
+        CST_Frontend --- UploadStatusUI[Upload Status indicators<br/>(React)]
+        CST_Frontend --- FlipperFlags[Feature Toggles<br/>cst_include_ddl_*, etc.]
     end
 ```
 
