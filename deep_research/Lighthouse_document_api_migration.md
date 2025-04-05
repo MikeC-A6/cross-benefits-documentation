@@ -115,7 +115,7 @@ sequenceDiagram
     VBMS-->>LH: Documents metadata + statuses
     LH-->>API: JSON list of documents
     API-->>Frontend: JSON list of documents
-    Frontend: Render list of letters (with types and dates)
+    Frontend->>Frontend: Render list of letters (with types and dates)
 
     Veteran->>Frontend: Click a specific Letter link
     Frontend->>API: GET /v0/claim_letters/{doc_id} (direct link or fetch)
