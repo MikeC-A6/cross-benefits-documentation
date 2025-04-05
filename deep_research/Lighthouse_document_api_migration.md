@@ -137,7 +137,7 @@ Below is a simplified flowchart of key components and work items from this migra
 ```mermaid
 flowchart LR
     subgraph "Legacy Flow"
-        EVSS[VBMS_Connect & EVSS<br/>Document Service] -- "Claim docs data" --> CST_Frontend_Old[CST Frontend (Old)]
+        EVSS[VBMS_Connect & EVSS<br/>Document Service] -- "Claim docs data" --> CST_Frontend_Old["CST Frontend (Old)"]
     end
 
     subgraph "Migrated Flow"
@@ -155,7 +155,7 @@ flowchart LR
         VetsAPI --- ClaimLettersCtrl[ClaimLetters Controller<br/>(vets-api)]
         VetsAPI --- UploadCtrl[BenefitsDocuments Controller<br/>(vets-api)]
         VetsAPI --- LighthouseClient[Lighthouse Docs Client<br/>(OAuth, service calls)]
-        CST_Frontend --- LettersUI["Your Claim Letters" page<br/>(React)]
+        CST_Frontend --- LettersUI["Your Claim Letters page<br/>(React)"]
         CST_Frontend --- UploadStatusUI[Upload Status indicators<br/>(React)]
         CST_Frontend --- FlipperFlags[Feature Toggles<br/>cst_include_ddl_*, etc.]
     end
