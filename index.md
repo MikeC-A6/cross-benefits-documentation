@@ -6,6 +6,7 @@ Welcome to the Cross Benefits Documentation hub. This site contains comprehensiv
 
 * [VA Claim Status Tool Architecture and Integration Analysis](deep_research/va-claim-status-architecture.md)
 * [VA Claim Status Tool Usability Research](deep_research/claim-status-usability-research.md)
+* [VA Event-Driven Claim Status Notifications for Decision Letters](deep_research/CST_Event_Bus_deep_research.md)
 
 ## About This Project
 
