@@ -1,4 +1,3 @@
-```markdown
 # Event-Driven Claim Status Notifications for Decision Letters (VA CST)
 
 ## Table of Contents
