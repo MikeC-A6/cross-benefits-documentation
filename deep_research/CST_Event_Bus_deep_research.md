@@ -64,26 +64,26 @@ The development effort has spanned multiple repositories and workstreams. The pr
 ```mermaid
 flowchart TB
     subgraph "Planning & Infrastructure"
-        epic["Epic 77622:<br/>Decision Letter Notification"]:::epic
+        epic["Epic 77622:\nDecision Letter Notification"]:::epic
         subgraph Infra
             i90484["#90484: Onboard eventbus-gateway to platform"]:::issue
-            repo[(New **eventbus-gateway** GitHub repo)]:::repo
-            argocdPR[(VSP ArgoCD config PR)]:::pr
+            repo[("New **eventbus-gateway** GitHub repo")]:::repo
+            argocdPR[("VSP ArgoCD config PR")]:::pr
             i96083["#96083: Questions on infra setup"]:::issue
             i95680["#95680: Basic Helm chart for Gateway"]:::issue
-            manifests[(VSP application manifests repo<br/>(Helm configs))]:::repo
+            manifests[("VSP application manifests repo\n(Helm configs)")]:::repo
             i95689["#95689: CI/CD roadmap planning"]:::issue
         end
     end
     subgraph "Backend Implementation"
-        vetsAPI[(vets-api code)]:::repo
-        gateway[(eventbus-gateway code)]:::repo
-        EEBTopic[(Kafka Topic<br/>\"DecisionLetterAvailable\")]
-        BIPAPI[(BIP / EVSS APIs)]
+        vetsAPI[("vets-api code")]:::repo
+        gateway[("eventbus-gateway code")]:::repo
+        EEBTopic[("Kafka Topic\n\"DecisionLetterAvailable\"")]
+        BIPAPI[("BIP / EVSS APIs")]
     end
     subgraph "Frontend & Feature Flags"
-        vetsWeb[(vets-website code)]:::repo
-        flipper[(Flipper flags<br/>cst_include_ddl_*)]
+        vetsWeb[("vets-website code")]:::repo
+        flipper[("Flipper flags\ncst_include_ddl_*")]
     end
     epic --> i90484
     i90484 --> repo
