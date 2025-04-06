@@ -141,21 +141,43 @@ Interestingly, the `EventBus Gateway` does *not* directly interface with `vets-a
 ### Diagram – CST EventBus Gateway flow
 
 ```mermaid
-graph LR
-    A[BIP/VBA System] -- Publishes event --> B(VA Enterprise Event Bus);
-    B -- Event --> C{EventBus Gateway<br/>(Karafka Consumer)};
-    C -- Looks up email --> D[VA Profile API];
-    C -- Sends email via --> E[VA Notify API];
-    E -- Email --> F((Veteran's Inbox));
-
-    subgraph "Separate User Action"
-        G[Veteran Logs into VA.gov] --> H{CST UI};
-        H -- Requests letters --> I[vets-api];
-        I -- Fetches letter --> J[BIP/Document Service];
-        J --> I --> H --> G;
+flowchart LR
+    %% Main flow nodes with better spacing
+    A["BIP/VBA System"] --"Publishes event"--> B["VA Enterprise Event Bus"]
+    B --"Event"--> C["EventBus Gateway\n(Karafka Consumer)"]
+    
+    %% Email path
+    C --"Looks up email"--> D["VA Profile API"]
+    C --"Sends email via"--> E["VA Notify API"]
+    E --"Email"--> F(("Veteran's\nInbox"))
+    
+    %% Separate user path in subgraph with better layout
+    subgraph UserAction["Separate User Action"]
+        direction TB
+        G["Veteran Logs\ninto VA.gov"] --> H["CST UI"]
+        H --"Requests letters"--> I["vets-api"]
+        I --"Fetches letter"--> J["BIP/Document Service"]
+        J --> I --> H --> G
     end
-
-    style F fill:#f9f,stroke:#333,stroke-width:2px
+    
+    %% Visual styling
+    classDef default fill:#f0f0f0,stroke:#333,stroke-width:1px
+    classDef system fill:#d4f1f9,stroke:#333,stroke-width:1px
+    classDef api fill:#e1d5e7,stroke:#333,stroke-width:1px
+    classDef consumer fill:#d5e8d4,stroke:#333,stroke-width:1px
+    classDef inbox fill:#f9c,stroke:#333,stroke-width:2px,color:#000
+    classDef bus fill:#fff2cc,stroke:#d6b656,stroke-width:1px
+    
+    %% Apply classes to nodes
+    class A,J system
+    class B,E bus
+    class C,H consumer
+    class D,I api
+    class F inbox
+    class G default
+    
+    %% Set background for subgraph
+    style UserAction fill:#e8e8e8,stroke:#666,stroke-width:1px,color:#333
 ```
 *Figure: Conceptual model of the CST EventBus Gateway notification flow. The Benefits Integration Platform (or another VBA system) publishes a “DecisionLetterAvailable” event to the VA Enterprise Event Bus when a new decision letter is generated. The EventBus Gateway service (Karafka consumer) in VA.gov consumes the event. It then looks up the Veteran’s email via VA Profile and uses VA Notify to send an email alert to the Veteran. The dashed box indicates that, separately, the Claim Status Tool (CST) UI on VA.gov can retrieve the letter via API when the Veteran checks, but that process is independent of the event-driven notification.*
 
