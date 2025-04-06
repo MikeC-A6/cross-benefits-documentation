@@ -179,9 +179,10 @@ sequenceDiagram
     Vets_API->>CentralMail: Forward document to Central Mail API
     Note over CentralMail: Document is scanned & routed asynchronously
 
-    === Poll for Status ===
-    Vets_API->>CentralMail: (Scheduled) Check upload status
-    CentralMail-->>Vets_API: Returns status = Received or Failed
+    group Poll for Status
+        Vets_API->>CentralMail: (Scheduled) Check upload status
+        CentralMail-->>Vets_API: Returns status = Received or Failed
+    end
 
     alt Upload processed successfully
         Vets_API->>Vets_API: Update EvidenceSubmission status = RECEIVED (with date)
@@ -191,11 +192,12 @@ sequenceDiagram
         VANotify-->>Veteran: **Email:** "Your claim document upload failed"
     end
 
-    === Veteran Checks Status ===
-    Veteran->>CST_UI: Later, open Claim Status tool (Files tab)
-    CST_UI->>Vets_API: GET /claims/{claimId} (retrieve claim details)
-    Vets_API-->>CST_UI: Details incl. evidenceSubmissions statuses
-    CST_UI->>Veteran: Show file list with status for each (Processing/Received/Failed)
+    group Veteran Checks Status
+        Veteran->>CST_UI: Later, open Claim Status tool (Files tab)
+        CST_UI->>Vets_API: GET /claims/{claimId} (retrieve claim details)
+        Vets_API-->>CST_UI: Details incl. evidenceSubmissions statuses
+        CST_UI->>Veteran: Show file list with status for each (Processing/Received/Failed)
+    end
 ```
 
 In this diagram, once the Veteran uploads a file, the backend immediately stores it as pending and the UI shows a confirmation. The Central Mail service processes it. The `vets-api` uses a polling job to ask Central Mail for the outcome. If Central Mail reports success, the database is updated to “received”. If there's a failure, the status is marked “failed” and a notification email is sent via VA Notify ([`vets-api/config/features.yml`](https://github.com/department-of-veterans-affairs/vets-api/blob/master/config/features.yml#:~:text=If%20enabled%20and%20a%20user,to%20the%20user%20and%20retried)). When the Veteran views the claim status later, the front-end calls the API and gets the current status of each upload, which it then displays in the Files tab. The entire flow is wrapped in feature flags.
