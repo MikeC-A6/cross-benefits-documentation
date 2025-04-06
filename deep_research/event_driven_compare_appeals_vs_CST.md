@@ -66,10 +66,12 @@ Once the Appeals consumer receives an event, it triggers downstream actions in t
 If a Higher-Level Review (HLR) is filed through VBMS (instead of through Caseflow directly), VBMS/BIP will handle it and then publish an event that a new HLR was created. The Appeals consumer picks up this event ([CST_Event_Bus_deep_research.md](https://github.com/MikeC-A6/cross-benefits-documentation/blob/main/deep_research/CST_Event_Bus_deep_research.md#:~:text=,of), [CST_Event_Bus_deep_research.md](https://github.com/MikeC-A6/cross-benefits-documentation/blob/main/deep_research/CST_Event_Bus_deep_research.md#:~:text=,needed%20to%20trigger%20the%20notification)) and uses Caseflow Intake code to create a corresponding `HigherLevelReview` record in Caseflow’s DB. This ensures that even though the HLR came from outside Caseflow, Caseflow is immediately aware of it – without manual data entry or nightly batch jobs. By the time the Veteran goes to VA.gov to check appeal status, that HLR will appear just as if it had been filed through Caseflow ([CST_Event_Bus_deep_research.md](https://github.com/MikeC-A6/cross-benefits-documentation/blob/main/deep_research/CST_Event_Bus_deep_research.md#:~:text=,gov%20letters%20page%2C%20etc), [CST_Event_Bus_deep_research.md](https://github.com/MikeC-A6/cross-benefits-documentation/blob/main/deep_research/CST_Event_Bus_deep_research.md#:~:text=%3A~%3Atext%3DEventBus%2520Gateway%2520is%2520a%2520Rails%2Ca%2520Veteran%2520via%2520VA%2520Notify%29%20,team%2Fissues%2F77622%20%3A~%3Atext%3DEventBus%2520Gateway%2520is%2520a%2520Rails%2Ca%2520Veteran%2520via%2520VA%2520Notify%29)). In short, the event bus + `appeals-consumer` replaces what could have been a painful synchronization problem with near-real-time updates.
 
 ```mermaid
-graph LR
-    A[VBMS/BIP] -- Publishes event --> B(VA Enterprise Event Bus);
-    B -- Event --> C{Appeals Consumer<br/>(Karafka)};
-    C -- Creates/Updates record --> D[Caseflow System<br/>(DB/API)];
+flowchart LR
+    A[VBMS/BIP] --"Publishes event"--> B(VA Enterprise Event Bus)
+    B --"Event"--> C["Appeals Consumer
+    (Karafka)"]
+    C --"Creates/Updates record"--> D["Caseflow System
+    (DB/API)"]
 ```
 *Figure: Simplified event flow for the Appeals Consumer service. VBMS/BIP publishes an event (e.g., a new claim review intake) to the VA Enterprise Event Bus, which the Appeals Consumer (Karafka) consumes. The consumer then creates or updates the relevant record in Caseflow. This way, the appeals/Caseflow system stays in sync with upstream processes, and Veterans see up-to-date appeal status or documents in the UI.*
 
