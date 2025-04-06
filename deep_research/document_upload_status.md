@@ -179,7 +179,7 @@ sequenceDiagram
     Vets_API->>CentralMail: Forward document to Central Mail API
     Note over CentralMail: Document is scanned & routed asynchronously
 
-    group Poll for Status
+    rect Poll for Status
         Vets_API->>CentralMail: (Scheduled) Check upload status
         CentralMail-->>Vets_API: Returns status = Received or Failed
     end
@@ -192,7 +192,7 @@ sequenceDiagram
         VANotify-->>Veteran: **Email:** "Your claim document upload failed"
     end
 
-    group Veteran Checks Status
+    rect Veteran Checks Status
         Veteran->>CST_UI: Later, open Claim Status tool (Files tab)
         CST_UI->>Vets_API: GET /claims/{claimId} (retrieve claim details)
         Vets_API-->>CST_UI: Details incl. evidenceSubmissions statuses
