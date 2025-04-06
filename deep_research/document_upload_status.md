@@ -52,25 +52,34 @@ sequenceDiagram
     participant VANotify as VA Notify (Email)
     Veteran->>CST_UI: Select file & click "Upload" on Files tab
     CST_UI->>Vets_API: POST /claims/{claimId}/documents (file upload)
-    Vets_API->>Vets_API: Store new EvidenceSubmission (status = PENDING) ([PR #5 for silent failure work - Add files to create a job to poll the upload status from lighthouse and to create a cron job to send emails for failed uploads by pmclaren19 · Pull Request #20637 · department-of-veterans-affairs/vets-api · GitHub](https://github.com/department-of-veterans-affairs/vets-api/pull/20637#:~:text=,upload_status_updater))
+    Vets_API->>Vets_API: Store new EvidenceSubmission (status = PENDING)
     Vets_API-->>CST_UI: Respond success (upload accepted)  
-    CST_UI->>Veteran: Display confirmation alert (file “processing”) ([[CST] - 91820 Added focus to the va-alert  after submitting a document by pmclaren19 · Pull Request #34887 · department-of-veterans-affairs/vets-website · GitHub](https://github.com/department-of-veterans-affairs/vets-website/pull/34887#:~:text=component%2C%20specifically%20the%20va,after%20completing%20a%205103%20Notice))
+    CST_UI->>Veteran: Display confirmation alert (file "processing")
     Vets_API->>CentralMail: Forward document to Central Mail API
     Note over CentralMail: Document is scanned & routed asynchronously
-    === Poll for Status ===
+    
+    %% Using proper divider syntax
+    rect rgb(238, 238, 238)
+    Note over Veteran,VANotify: Poll for Status
+    end
+    
     Vets_API->>CentralMail: (Scheduled) Check upload status
     CentralMail-->>Vets_API: Returns status = Received or Failed
     alt Upload processed successfully 
-        Vets_API->>Vets_API: Update EvidenceSubmission status = RECEIVED (with date) ([PR #5 for silent failure work - Add files to create a job to poll the upload status from lighthouse and to create a cron job to send emails for failed uploads by pmclaren19 · Pull Request #20637 · department-of-veterans-affairs/vets-api · GitHub](https://github.com/department-of-veterans-affairs/vets-api/pull/20637#:~:text=,upload_status_updater))
+        Vets_API->>Vets_API: Update EvidenceSubmission status = RECEIVED (with date)
     else Upload processing failed 
-        Vets_API->>Vets_API: Update status = FAILED + error info ([PR #5 for silent failure work - Add files to create a job to poll the upload status from lighthouse and to create a cron job to send emails for failed uploads by pmclaren19 · Pull Request #20637 · department-of-veterans-affairs/vets-api · GitHub](https://github.com/department-of-veterans-affairs/vets-api/pull/20637#:~:text=,upload_status_updater))
-        Vets_API->>VANotify: Enqueue FailureNotificationEmailJob ([PR #5 for silent failure work - Add files to create a job to poll the upload status from lighthouse and to create a cron job to send emails for failed uploads by pmclaren19 · Pull Request #20637 · department-of-veterans-affairs/vets-api · GitHub](https://github.com/department-of-veterans-affairs/vets-api/pull/20637#:~:text=,to%20test%20it))
-        VANotify-->>Veteran: **Email:** "Your claim document upload failed" ([vets-api/config/features.yml at master · department-of-veterans-affairs/vets-api · GitHub](https://github.com/department-of-veterans-affairs/vets-api/blob/master/config/features.yml#:~:text=If%20enabled%20and%20a%20user,to%20the%20user%20and%20retried))
+        Vets_API->>Vets_API: Update status = FAILED + error info
+        Vets_API->>VANotify: Enqueue FailureNotificationEmailJob
+        VANotify-->>Veteran: **Email:** "Your claim document upload failed"
     end
-    === Veteran Checks Status ===
+    
+    rect rgb(238, 238, 238)
+    Note over Veteran,VANotify: Veteran Checks Status
+    end
+    
     Veteran->>CST_UI: Later, open Claim Status tool (Files tab)
     CST_UI->>Vets_API: GET /claims/{claimId} (retrieve claim details)
-    Vets_API-->>CST_UI: Details incl. evidenceSubmissions statuses ([Pull requests · department-of-veterans-affairs/vets-api · GitHub](https://github.com/department-of-veterans-affairs/vets-api/pulls?q=document+upload+status+is%3Aclosed#:~:text=%5BCST%5D%20,passing))
+    Vets_API-->>CST_UI: Details incl. evidenceSubmissions statuses
     CST_UI->>Veteran: Show file list with status for each (Processing/Received/Failed)
 ```
 
