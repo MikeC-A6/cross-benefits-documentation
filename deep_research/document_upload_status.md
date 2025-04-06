@@ -212,7 +212,7 @@ The diagram below maps key GitHub artifacts and code components related to this 
 flowchart LR
     subgraph "CST Document Upload Status Epic (#103576)"
         direction TB
-        A[Planning: "Silent failure" merge plan<br>(va.gov-team#100037)]:::issue
+        A[Planning: &quot;Silent failure&quot; merge plan<br>(va.gov-team#100037)]:::issue
         B[Content Design: Friendly evidence names<br>(va.gov-team#103936)]:::issue
         C[Backend: Upload status tracking<br>(vets-api changes)]:::section
         D[Frontend: CST UI updates<br>(vets-website changes)]:::section
@@ -235,9 +235,12 @@ flowchart LR
     D --> F5[Default UI for pending status<br>(PR #35132)]:::pr
 
     %% Links to issues
-    A --> C1 & C4 & C5
-    A --> F1 & F2
-    B --> C[API adds `friendlyName`, etc.]:::cite
+    A --> C1
+    A --> C4
+    A --> C5
+    A --> F1
+    A --> F2
+    B -->|API adds `friendlyName`, etc.| C:::cite
 
     classDef issue fill:#ffecd9,stroke:#d77,stroke-width:1px,color:#000
     classDef section fill:#d9f7be,stroke:#389e0d,stroke-width:1px,color:#000
