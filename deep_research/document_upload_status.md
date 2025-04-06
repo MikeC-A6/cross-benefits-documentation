@@ -163,41 +163,43 @@ Throughout the development, the team kept the Veteran experience at the forefron
 The following sequence diagram illustrates the journey of an evidence upload from the Veteran’s perspective and the system’s internal handling, including the feedback loop via email if something goes wrong:
 
 ```mermaid
-sequenceDiagram
-    participant Veteran
-    participant CST_UI as Claim Status Tool (UI)
-    participant Vets_API as VA.gov API (vets-api)
-    participant CentralMail as Central Mail Service
-    participant VANotify as VA Notify (Email)
-
-    Veteran->>CST_UI: Select file & click "Upload" on Files tab
-    CST_UI->>Vets_API: POST /claims/{claimId}/documents (file upload)
-    Vets_API->>Vets_API: Store new EvidenceSubmission (status = PENDING)
-    Vets_API-->>CST_UI: Respond success (upload accepted)
-    CST_UI->>Veteran: Display confirmation alert (file “processing”)
-
-    Vets_API->>CentralMail: Forward document to Central Mail API
-    Note over CentralMail: Document is scanned & routed asynchronously
-
-    rect Poll for Status
-        Vets_API->>CentralMail: (Scheduled) Check upload status
-        CentralMail-->>Vets_API: Returns status = Received or Failed
+flowchart LR
+    subgraph "CST Document Upload Status Epic (#103576)"
+        direction TB
+        A[Planning: Silent failure merge plan<br/>(va.gov-team#100037)]:::issue
+        B[Content Design: Friendly evidence names<br/>(va.gov-team#103936)]:::issue
+        C[Backend: Upload status tracking<br/>(vets-api changes)]:::section
+        D[Frontend: CST UI updates<br/>(vets-website changes)]:::section
     end
 
-    alt Upload processed successfully
-        Vets_API->>Vets_API: Update EvidenceSubmission status = RECEIVED (with date)
-    else Upload processing failed
-        Vets_API->>Vets_API: Update status = FAILED + error info
-        Vets_API->>VANotify: Enqueue FailureNotificationEmailJob
-        VANotify-->>Veteran: **Email:** "Your claim document upload failed"
-    end
+    %% Backend breakdown
+    C --> C1[Feature flag `cst_show_document_upload_status` added<br/>(vets-api PR #20881)]:::pr
+    C --> C2[EvidenceSubmission model & DB migration<br/>(PR #20318, #20346)]:::pr
+    C --> C3[Document upload via Lighthouse (Central Mail)<br/>(PR #20453)]:::pr
+    C --> C4[Status polling job & updater<br/>(PR #20637)]:::pr
+    C --> C5[Failure email job & VA Notify integration<br/>(PR #20637)]:::pr
+    C --> C6[Follow-up: error handling fixes<br/>(PR #20850)]:::pr
+    C --> C7[`hasFailedUploads` flag in API response<br/>(PR #21204)]:::pr
 
-    rect Veteran Checks Status
-        Veteran->>CST_UI: Later, open Claim Status tool (Files tab)
-        CST_UI->>Vets_API: GET /claims/{claimId} (retrieve claim details)
-        Vets_API-->>CST_UI: Details incl. evidenceSubmissions statuses
-        CST_UI->>Veteran: Show file list with status for each (Processing/Received/Failed)
-    end
+    %% Frontend breakdown
+    D --> F1[Feature flag in frontend code<br/>(vets-web PR #34790)]:::pr
+    D --> F2[Files tab UI: show status text & icons<br/>(PR #35080)]:::pr
+    D --> F3[Accessibility: focus on alert after upload<br/>(PR #34887)]:::pr
+    D --> F4[Content tweaks (remove redundant text)<br/>(PR #34159)]:::pr
+    D --> F5[Default UI for pending status<br/>(PR #35132)]:::pr
+
+    %% Links to issues
+    A --> C1
+    A --> C4
+    A --> C5
+    A --> F1
+    A --> F2
+    B -->|API adds `friendlyName`, etc.| C:::cite
+
+    classDef issue fill:#ffecd9,stroke:#d77,stroke-width:1px,color:#000
+    classDef section fill:#d9f7be,stroke:#389e0d,stroke-width:1px,color:#000
+    classDef pr fill:#ececff,stroke:#555,color:#000
+    classDef cite fill:#fff,stroke:#fff
 ```
 
 In this diagram, once the Veteran uploads a file, the backend immediately stores it as pending and the UI shows a confirmation. The Central Mail service processes it. The `vets-api` uses a polling job to ask Central Mail for the outcome. If Central Mail reports success, the database is updated to “received”. If there's a failure, the status is marked “failed” and a notification email is sent via VA Notify ([`vets-api/config/features.yml`](https://github.com/department-of-veterans-affairs/vets-api/blob/master/config/features.yml#:~:text=If%20enabled%20and%20a%20user,to%20the%20user%20and%20retried)). When the Veteran views the claim status later, the front-end calls the API and gets the current status of each upload, which it then displays in the Files tab. The entire flow is wrapped in feature flags.
