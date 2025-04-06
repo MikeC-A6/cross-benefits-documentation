@@ -212,27 +212,27 @@ The diagram below maps key GitHub artifacts and code components related to this 
 flowchart LR
     subgraph "CST Document Upload Status Epic (#103576)"
         direction TB
-        A[Planning: &quot;Silent failure&quot; merge plan<br>(va.gov-team#100037)]:::issue
-        B[Content Design: Friendly evidence names<br>(va.gov-team#103936)]:::issue
-        C[Backend: Upload status tracking<br>(vets-api changes)]:::section
-        D[Frontend: CST UI updates<br>(vets-website changes)]:::section
+        A[Planning: 'Silent failure' merge plan<br/>(va.gov-team#100037)]:::issue
+        B[Content Design: Friendly evidence names<br/>(va.gov-team#103936)]:::issue
+        C[Backend: Upload status tracking<br/>(vets-api changes)]:::section
+        D[Frontend: CST UI updates<br/>(vets-website changes)]:::section
     end
 
     %% Backend breakdown
-    C --> C1[Feature flag `cst_show_document_upload_status` added<br>(vets-api PR #20881)]:::pr
-    C --> C2[EvidenceSubmission model & DB migration<br>(PR #20318, #20346)]:::pr
-    C --> C3[Document upload via Lighthouse (Central Mail)<br>(PR #20453)]:::pr
-    C --> C4[Status polling job & updater<br>(PR #20637)]:::pr
-    C --> C5[Failure email job & VA Notify integration<br>(PR #20637)]:::pr
-    C --> C6[Follow-up: error handling fixes<br>(PR #20850)]:::pr
-    C --> C7[`hasFailedUploads` flag in API response<br>(PR #21204)]:::pr
+    C --> C1[Feature flag `cst_show_document_upload_status` added<br/>(vets-api PR #20881)]:::pr
+    C --> C2[EvidenceSubmission model & DB migration<br/>(PR #20318, #20346)]:::pr
+    C --> C3[Document upload via Lighthouse (Central Mail)<br/>(PR #20453)]:::pr
+    C --> C4[Status polling job & updater<br/>(PR #20637)]:::pr
+    C --> C5[Failure email job & VA Notify integration<br/>(PR #20637)]:::pr
+    C --> C6[Follow-up: error handling fixes<br/>(PR #20850)]:::pr
+    C --> C7[`hasFailedUploads` flag in API response<br/>(PR #21204)]:::pr
 
     %% Frontend breakdown
-    D --> F1[Feature flag in frontend code<br>(vets-web PR #34790)]:::pr
-    D --> F2[Files tab UI: show status text & icons<br>(PR #35080)]:::pr
-    D --> F3[Accessibility: focus on alert after upload<br>(PR #34887)]:::pr
-    D --> F4[Content tweaks (remove redundant text)<br>(PR #34159)]:::pr
-    D --> F5[Default UI for pending status<br>(PR #35132)]:::pr
+    D --> F1[Feature flag in frontend code<br/>(vets-web PR #34790)]:::pr
+    D --> F2[Files tab UI: show status text & icons<br/>(PR #35080)]:::pr
+    D --> F3[Accessibility: focus on alert after upload<br/>(PR #34887)]:::pr
+    D --> F4[Content tweaks (remove redundant text)<br/>(PR #34159)]:::pr
+    D --> F5[Default UI for pending status<br/>(PR #35132)]:::pr
 
     %% Links to issues
     A --> C1
