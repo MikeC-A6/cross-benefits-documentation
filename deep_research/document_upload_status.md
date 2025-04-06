@@ -91,36 +91,39 @@ The diagram below maps key GitHub artifacts and code components related to this 
 ```mermaid
 flowchart LR
     subgraph CST_Document_Upload_Status_Epic
-        direction TB
-        A[Planning: Silent failure merge plan<br>(va.gov-team#100037)]:::issue
-        B[Content Design: Friendly evidence names<br>(va.gov-team#103936)]:::issue
-        C[Backend: Upload status tracking<br>(vets-api changes)]:::section
-        D[Frontend: CST UI updates<br>(vets-website changes)]:::section
+        A[Planning]
+        B[Content Design]
+        C[Backend]
+        D[Frontend]
     end
-    %% Backend breakdown
-    C --> C1[Feature flag cst_show_document_upload_status added<br>(vets-api PR #20881)]:::pr
-    C --> C2[EvidenceSubmission model & DB migration<br>(PR #20318, #20346)]:::pr
-    C --> C3[Document upload via Lighthouse (Central Mail)<br>(PR #20453)]:::pr
-    C --> C4[Status polling job & updater<br>(PR #20637)]:::pr
-    C --> C5[Failure email job & VA Notify integration<br>(PR #20637)]:::pr
-    C --> C6[Follow-up: error handling fixes<br>(PR #20850)]:::pr
-    C --> C7[hasFailedUploads flag in API response<br>(PR #21204)]:::pr
-    %% Frontend breakdown
-    D --> F1[Feature flag in frontend code<br>(vets-web PR #34790)]:::pr
-    D --> F2[Files tab UI: show status text & icons<br>(PR #35080)]:::pr
-    D --> F3[Accessibility: focus on alert after upload<br>(PR #34887)]:::pr
-    D --> F4[Content tweaks (remove redundant text)<br>(PR #34159)]:::pr
-    D --> F5[Default UI for pending status<br>(PR #35132)]:::pr
-    %% Links to issues
-    A --> C1 & C4 & C5
-    A --> F1 & F2
-    B --> C[API adds friendlyName, etc.]:::cite
+    C --> C1[Feature flag]
+    C --> C2[DB migration]
+    C --> C3[Document upload]
+    C --> C4[Status polling]
+    C --> C5[Failure email]
+    C --> C6[Error handling]
+    C --> C7[API response]
+    D --> F1[Frontend flag]
+    D --> F2[Files tab UI]
+    D --> F3[Accessibility]
+    D --> F4[Content tweaks]
+    D --> F5[Default UI]
+    A --> C1
+    A --> C4
+    A --> C5
+    A --> F1
+    A --> F2
+    B --> C
     C1 -->|enabled| D
     
-    classDef issue fill:#ffecd9,stroke:#d77,stroke-width:1px,color:#000
-    classDef section fill:#d9f7be,stroke:#389e0d,stroke-width:1px,color:#000
-    classDef pr fill:#ececff,stroke:#555,color:#000
+    classDef issue fill:#ffecd9,stroke:#d77,stroke-width:1px
+    classDef section fill:#d9f7be,stroke:#389e0d,stroke-width:1px
+    classDef pr fill:#ececff,stroke:#555
     classDef cite fill:#fff,stroke:#fff
+    
+    class A,B issue
+    class C,D section
+    class C1,C2,C3,C4,C5,C6,C7,F1,F2,F3,F4,F5 pr
 ```
 
 **Explanation:** In the above flowchart, the *Backend* section shows the progression of work in vets-api: first introducing the feature flag and data model, then integrating with Central Mail (Lighthouse), then adding the polling mechanism and failure email job, and so on. Each of those was developed in separate PRs (not all are listed, but key ones are). The *Frontend* section shows corresponding vets-website efforts: adding the feature flag usage, updating the Files tab UI to display statuses (PR #35080 was the main UI implementation), improving accessibility with focus management (PR #34887), and making some content adjustments. The planning issue #100037 is linked to many of the backend PRs, indicating they were part of the “silent failure” epic, while #103936 (friendly names) influenced the content but is a parallel piece of the same overall epic. All of this was under the umbrella of epic #103576. In practice, developers like **pmclaren19** and **samcoforma** led many of the commits on backend and frontend respectively, collaborating with designers (e.g. **janechodance**) to ensure the UI text met VA content guidelines.
