@@ -212,7 +212,7 @@ The diagram below maps key GitHub artifacts and code components related to this 
 flowchart LR
     subgraph "CST Document Upload Status Epic (#103576)"
         direction TB
-        A[Planning: 'Silent failure' merge plan<br/>(va.gov-team#100037)]:::issue
+        A[Planning: &ldquo;Silent failure&rdquo; merge plan<br/>(va.gov-team#100037)]:::issue
         B[Content Design: Friendly evidence names<br/>(va.gov-team#103936)]:::issue
         C[Backend: Upload status tracking<br/>(vets-api changes)]:::section
         D[Frontend: CST UI updates<br/>(vets-website changes)]:::section
