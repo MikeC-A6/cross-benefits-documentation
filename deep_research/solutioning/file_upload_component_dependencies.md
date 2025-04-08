@@ -104,32 +104,49 @@ VA.gov tracking issue **`#87835`** (`[CST][ENG] Update File Uploader to use the 
 ### Component Structure Diagram
 
 ```mermaid
-graph TB
-    subgraph VaFileInputMultiple [va-file-input-multiple (Shadow DOM)]
-        direction TB
-        LabelHint[Label / Hint Text]
-        AddButton[Add File Button]
-        FileList[File List Container]
-        SlotTemplate["<slot> (Template for extra fields)"]
-        FileList --> F1["<va-file-input> (File 1)"]
-        FileList --> F2["<va-file-input> (File 2)"]
-        FileList --> F_New["<va-file-input> (Empty - Add New)"]
-    end
-
-    subgraph FileCard [Example: File 1 Card Content]
-        direction TB
-        FileName[File Name / Size]
-        Actions[Change / Delete Buttons]
-        ExtraFields["Cloned Slot Content<br/>(e.g., Doc Type, Password)"]
-    end
-
-    SlotTemplate -.-> |Cloned & Appended (Conditionally)| ExtraFields
-
-    style FileList fill:#eee,stroke:#999,stroke-dasharray: 3 3
-    style SlotTemplate fill:#fdf,stroke:#f0f
-    style F1 fill:#eef,stroke:#333
-    style F2 fill:#eef,stroke:#333
-    style F_New fill:#eef,stroke:#333
+flowchart TD
+    %% Main component with vertical flow
+    ComponentTitle["📂 va-file-input-multiple Component"]
+    LabelHint["🏷️ Label & Hint Text"]
+    AddButton["➕ Add File Button"]
+    FileList["📋 File List Container"]
+    SlotTemplate["🧩 &lt;slot&gt; Template\nfor extra fields"]
+    
+    ComponentTitle --> LabelHint
+    ComponentTitle --> AddButton
+    ComponentTitle --> FileList
+    ComponentTitle --> SlotTemplate
+    
+    %% File list items with vertical alignment
+    FileList --> F1["📄 File 1"]
+    FileList --> F2["📄 File 2"]
+    FileList --> F_New["⬜ Empty File Input\n(Add New)"]
+    
+    %% File card detail with vertical flow
+    F1 --> FileCard["📝 File Card Structure"]
+    FileCard --> FileName["📋 File Name & Size"]
+    FileCard --> Actions["🔄 Change / 🗑️ Delete"]
+    FileCard --> ExtraFields["🔧 Custom Fields\n(Doc Type, Password)"]
+    
+    %% Connection between slot and extra fields
+    SlotTemplate -.->|"Cloned based on\nslotFieldIndexes prop"| ExtraFields
+    
+    %% Enhanced styling with GitHub-friendly colors
+    classDef title fill:#0366d6,stroke:#0366d6,color:#ffffff,font-weight:bold
+    classDef container fill:#f6f8fa,stroke:#d1d5da,stroke-width:1px,color:#24292e
+    classDef fileElement fill:#e1e4e8,stroke:#d1d5da,stroke-width:1px,color:#24292e
+    classDef emptyFile fill:#f6f8fa,stroke:#d1d5da,stroke-width:1px,color:#6a737d,font-style:italic
+    classDef slot fill:#dbedff,stroke:#0366d6,stroke-width:1px,color:#0366d6
+    classDef cardSection fill:#fff5b1,stroke:#d1d5da,stroke-width:1px,color:#24292e
+    
+    %% Apply classes to elements
+    class ComponentTitle title
+    class FileList,FileCard container
+    class LabelHint,AddButton,FileName,Actions fileElement
+    class F1,F2 fileElement
+    class F_New emptyFile
+    class SlotTemplate slot
+    class ExtraFields cardSection
 ```
 *Diagram: `<va-file-input-multiple>` contains multiple `<va-file-input>` child components. If slot content is provided, it's cloned and appended into each file card (or only those specified by `slotFieldIndexes`).*
 
