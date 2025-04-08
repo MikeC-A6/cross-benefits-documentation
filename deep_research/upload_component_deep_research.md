@@ -144,21 +144,66 @@ Key configuration properties:
 ### Mermaid Diagram – File Upload Flow
 
 ```mermaid
-sequenceDiagram
-    participant U as User
-    participant C as va-file-input-multiple
-    participant App as Claims Status Tool (App)
-
-    U->>C: Choose a file (via file picker)
-    C->>C: Add new file to internal list and render file card
-    C->>C: Attach slot content to new file card (if applicable via slotFieldIndexes)
-    C-->>App: Emit **vaMultipleChange** event with updated file list state
-    App->>App: Handle event: Update Redux state with new file (incl. docType, encrypted flag)
-    opt Conditional Slot Update
-        App->>App: Determine which file indices need password field
-        App->>C: Update **slotFieldIndexes** prop based on encrypted flags
-        C->>C: Re-render file cards; attach slot content only to specified file(s)
+flowchart TD
+    %% Define nodes with better labels
+    User(["👤 User"])
+    Component["📄 va-file-input-multiple\nComponent"]
+    App["⚙️ Claims Status Tool\n(Application)"]
+    
+    %% Main flow with improved styling
+    User -->|"1. Choose file via picker"| Component
+    
+    %% Component internal processes
+    subgraph ComponentActions["Component Actions"]
+        direction TB
+        Step1["Add file to internal list"]
+        Step2["Render file card"]
+        Step3["Attach slot content if needed"]
+        
+        Step1 --> Step2 --> Step3
     end
+    
+    Component === ComponentActions
+    ComponentActions -->|"2. Emit vaMultipleChange event"| App
+    
+    %% App handling
+    subgraph AppActions["Application Processing"]
+        direction TB
+        AppStep1["Update Redux state"]
+        AppStep2["Add document type"]
+        AppStep3["Set encrypted flag"]
+        
+        AppStep1 --> AppStep2 --> AppStep3
+    end
+    
+    App === AppActions
+    
+    %% Conditional update with better visual separation
+    subgraph ConditionalUpdate["🔄 Conditional Slot Update"]
+        direction LR
+        DetectEncrypted["Determine files\nneeding password"]
+        UpdateProps["Update slotFieldIndexes\nprop with encrypted flags"]
+        ReRender["Re-render file cards with\npassword fields where needed"]
+        
+        DetectEncrypted --> UpdateProps --> ReRender
+    end
+    
+    AppActions -->|"3. If files need passwords"| ConditionalUpdate
+    UpdateProps -.->|"4. Pass updated props"| Component
+    
+    %% Styling
+    classDef user fill:#f9f0ff,stroke:#9370db,stroke-width:2px,color:#333,font-weight:bold
+    classDef component fill:#e6f0ff,stroke:#4682b4,stroke-width:2px,color:#333
+    classDef app fill:#e6ffe6,stroke:#3cb371,stroke-width:2px,color:#333
+    classDef action fill:#fff9e6,stroke:#daa520,stroke-width:1px,color:#333
+    classDef conditional fill:#fff0f0,stroke:#cd5c5c,stroke-width:2px,color:#333,font-weight:bold
+    
+    class User user
+    class Component component
+    class App app
+    class ComponentActions,AppActions action
+    class ConditionalUpdate conditional
+    class Step1,Step2,Step3,AppStep1,AppStep2,AppStep3,DetectEncrypted,UpdateProps,ReRender action
 ```
 *Diagram: Sequence illustrating user interaction, component events, application state updates, and conditional slot rendering based on application logic.*
 
