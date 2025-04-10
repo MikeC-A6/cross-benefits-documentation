@@ -35,7 +35,8 @@ We propose a Slow Request Cache Layer and Temporary DB Storage within vets-api t
 To enhance system efficiency and reduce latency, we will explore implementing targeted optimizations across data retrieval and processing layers. This includes expanding the use of caching for frequently accessed claim data, implementing ephemeral storage in vets-api DB
 
 tables with automatic expiration, and ensuring enforcement of authorization policies. Given the data ownership complexities and governance beyond OCTO, we will engage key stakeholders early to ensure alignment on security, compliance, and integration feasibility.
-![img-0.jpeg](img-0.jpeg)
+
+<img width="850" alt="Screenshot 2025-04-10 at 9 20 13 AM" src="https://github.com/user-attachments/assets/f1f38a79-5f01-42da-86c2-cfefd7529460" />
 
 # 1.1.4 | Resiliency and Circuit Breakers 
 
