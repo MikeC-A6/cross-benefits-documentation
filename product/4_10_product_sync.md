@@ -52,6 +52,8 @@
     -   Could serve as a reference implementation for the platform team, potentially speeding up resolution.
     -   *Might* be a candidate for the platform team to accept to merge in as the new component.
     -   Allows the team to build experience delivering an end-to-end solution.
+ 
+    Amy notes: Sync up with Jane Cho from BMTII in order to see what the status of the component migration is.
 
 ---
 
