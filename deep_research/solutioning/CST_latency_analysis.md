@@ -1,3 +1,5 @@
+This analysis was done using OpenAI Deep Research and is subject to error. Use with caution.
+
 # VA Claims Status Tool – Performance Analysis Report
 
 ## Executive Summary
