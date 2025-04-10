@@ -11,7 +11,7 @@
 ### Migrate to LightHouse Benefits Documents API from EVSS document upload service for evidence upload
 
 -   **Status:** Currently at 75% rollout due to higher than expected 504 errors during high traffic times.
--   Lighthouse contract was on a code freeze until 4/8.
+-   Lighthouse contract was on a code freeze that was planned until 4/8, but this has been extended until an unknown date
 -   **Next steps needed:** Follow up with Lighthouse team in [this thread](https://dsva.slack.com/archives/C02CQP3RFFX/p1743599304727799?thread_ts=1742584692.152089&cid=C02CQP3RFFX) to determine if a fix has been implemented in order to go to 100%.
 
 ### Migrate to Lighthouse from EVSS for letters generation
