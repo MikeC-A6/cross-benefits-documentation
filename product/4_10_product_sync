@@ -1,4 +1,3 @@
-```markdown
 # Product Sync Prep - 4/10/2025
 
 ## Lighthouse Migration
@@ -79,4 +78,3 @@
     -   Identify data sources for metrics (Datadog, GA, DOMO).
     -   Bring engineers up to speed on the code base.
 -   Consider a 1 week “discovery sprint” where the entire team is focused on producing a readout of findings.
-```
