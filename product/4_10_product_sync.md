@@ -4,7 +4,11 @@
 
 ## Lighthouse Migration
 
-### Migrate to LightHouse Benefits Documents API from VBMS_Connect
+### Migrate to LightHouse Benefits Documents API from VBMS_Connect for retrieving claim letters
+
+- Not started, but hopefully within a month or so we can 
+
+### Migrate to LightHouse Benefits Documents API from EVSS document upload service for evidence upload
 
 -   **Status:** Currently at 75% rollout due to higher than expected 504 errors during high traffic times.
 -   Lighthouse contract was on a code freeze until 4/8.
@@ -17,7 +21,7 @@
     -   “Concerns with how Lighthouse is defining whether a user is a Veteran or Dependent, and specifically, whether the dependent is a beneficiary that should have access to the benefit summary letter. Lighthouse & VA.gov teams will meet with MPI team to discuss logic”
     -   “The healthcare eligibility center requested that we pause migration until the ACA letter content is updated and corrected. Lighthouse plans to update the letter content after their code freeze is lifted on 4/8.”
 
-**Summary:** Very little technical work required - mostly needs follow-up and monitoring.
+**Summary:** For the first and third, there is little technical work required - mostly needs follow-up and monitoring. For the second, BMT1 will take on this work
 
 ---
 
