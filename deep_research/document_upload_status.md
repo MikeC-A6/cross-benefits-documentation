@@ -200,43 +200,73 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    subgraph CST_Document_Upload_Status_Epic [CST Document Upload Status Epic (#103576)]
+    %% Main Epic container with better styling
+    subgraph EpicContainer ["📋 CST Document Upload Status Epic (#103576)"]
         direction TB
-        A[Planning: "Silent failure" merge plan<br>(va.gov-team#100037)]:::issue_style
-        B[Content Design: Friendly evidence names<br>(va.gov-team#103936)]:::issue_style
-        C[Backend: Upload status tracking<br>(vets-api changes)]:::section_style
-        D[Frontend: CST UI updates<br>(vets-website changes)]:::section_style
+        
+        %% Main components with improved labels and icons
+        Planning["🔍 Planning\n'Silent failure' merge plan\n(va.gov-team#100037)"]
+        Content["📝 Content Design\nFriendly evidence names\n(va.gov-team#103936)"]
+        Backend["⚙️ Backend\nUpload status tracking\n(vets-api changes)"]
+        Frontend["🖥️ Frontend\nCST UI updates\n(vets-website changes)"]
     end
-
-    %% Backend breakdown
-    C --> C1[Feature flag `cst_show_document_upload_status` added<br>(vets-api PR #20881)]:::pr_style
-    C --> C2[EvidenceSubmission model & DB migration<br>(PR #20318, #20346)]:::pr_style
-    C --> C3[Document upload via Lighthouse (Central Mail)<br>(PR #20453)]:::pr_style
-    C --> C4[Status polling job & updater<br>(PR #20637)]:::pr_style
-    C --> C5[Failure email job & VA Notify integration<br>(PR #20637)]:::pr_style
-    C --> C6[Follow-up: error handling fixes<br>(PR #20850)]:::pr_style
-    C --> C7[`hasFailedUploads` flag in API response<br>(PR #21204)]:::pr_style
-
-    %% Frontend breakdown
-    D --> F1[Feature flag in frontend code<br>(vets-web PR #34790)]:::pr_style
-    D --> F2[Files tab UI: show status text & icons<br>(PR #35080)]:::pr_style
-    D --> F3[Accessibility: focus on alert after upload<br>(PR #34887)]:::pr_style
-    D --> F4[Content tweaks (remove redundant text)<br>(PR #34159)]:::pr_style
-    D --> F5[Default UI for pending status<br>(PR #35132)]:::pr_style
-
-    %% Links to issues
-    A --> C1
-    A --> C4
-    A --> C5
-    A --> F1
-    A --> F2
-    B --> C
-
-    C1 -->|enabled| D
-
-    classDef issue_style fill:#ffecd9,stroke:#d77,stroke-width:1px,color:#000
-    classDef section_style fill:#d9f7be,stroke:#389e0d,stroke-width:1px,color:#000
-    classDef pr_style fill:#ececff,stroke:#555,color:#000
+    
+    %% Backend breakdown with improved organization
+    subgraph BackendTasks ["Backend Implementation"]
+        direction TB
+        C1["🚩 Feature flag 'cst_show_document_upload_status'\n(vets-api PR #20881)"]
+        C2["💾 EvidenceSubmission model & DB migration\n(PR #20318, #20346)"]
+        C3["📤 Document upload via Lighthouse\n(PR #20453)"]
+        C4["🔄 Status polling job & updater\n(PR #20637)"]
+        C5["📧 Failure email job & VA Notify integration\n(PR #20637)"]
+        C6["🛠️ Follow-up: error handling fixes\n(PR #20850)"]
+        C7["🏁 'hasFailedUploads' flag in API response\n(PR #21204)"]
+    end
+    
+    %% Frontend breakdown with improved organization
+    subgraph FrontendTasks ["Frontend Implementation"]
+        direction TB
+        F1["🚩 Feature flag in frontend code\n(vets-web PR #34790)"]
+        F2["🔍 Files tab UI: show status text & icons\n(PR #35080)"]
+        F3["♿ Accessibility: focus on alert after upload\n(PR #34887)"]
+        F4["📝 Content tweaks (remove redundant text)\n(PR #34159)"]
+        F5["⏳ Default UI for pending status\n(PR #35132)"]
+    end
+    
+    %% Connect main components to their subgraphs
+    Backend === BackendTasks
+    Frontend === FrontendTasks
+    
+    %% Links to issues with improved visibility
+    Planning -->|"Informs"| C1
+    Planning -->|"Defines"| C4
+    Planning -->|"Requires"| C5
+    Planning -->|"Depends on"| F1
+    Planning -->|"Specifies"| F2
+    Content -->|"Guides"| Backend
+    
+    %% Feature flag connection with emphasis
+    C1 ==>|"Enables when active"| Frontend
+    
+    %% Styling with enhanced color scheme
+    classDef epic fill:#f0f4ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af,font-weight:bold
+    classDef planning fill:#fef3c7,stroke:#d97706,stroke-width:1px,color:#92400e
+    classDef content fill:#fce7f3,stroke:#db2777,stroke-width:1px,color:#831843
+    classDef backend fill:#dcfce7,stroke:#16a34a,stroke-width:1px,color:#166534,font-weight:bold
+    classDef frontend fill:#e0f2fe,stroke:#0284c7,stroke-width:1px,color:#075985,font-weight:bold
+    classDef backend_pr fill:#f0fdf4,stroke:#16a34a,stroke-width:1px,color:#166534
+    classDef frontend_pr fill:#f0f9ff,stroke:#0284c7,stroke-width:1px,color:#075985
+    classDef flag_style fill:#fffbeb,stroke:#d97706,stroke-width:2px,color:#92400e,font-style:italic
+    
+    %% Apply classes to elements
+    class EpicContainer epic
+    class Planning planning
+    class Content content
+    class Backend,BackendTasks backend
+    class Frontend,FrontendTasks frontend
+    class C1,F1 flag_style
+    class C2,C3,C4,C5,C6,C7 backend_pr
+    class F2,F3,F4,F5 frontend_pr
 ```
 
 ### Explanation
