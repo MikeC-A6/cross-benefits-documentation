@@ -117,23 +117,60 @@ On the frontend, CST is implemented as a React application within **vets-website
 
 ```mermaid
 flowchart TD
+    %% STYLES
+    classDef entryNode fill:#f9d6ff,stroke:#9933cc,stroke-width:2px,color:#660099
+    classDef componentNode fill:#d0e8ff,stroke:#0066cc,stroke-width:2px,color:#003366
+    classDef actionNode fill:#fffacd,stroke:#d4af37,stroke-width:2px,color:#8b4513
+    classDef apiNode fill:#e6ffe6,stroke:#2e8b57,stroke-width:2px,color:#006400
+    classDef storeNode fill:#ffe6e6,stroke:#cc0000,stroke-width:2px,color:#800000
+    classDef uiNode fill:#e6f7ff,stroke:#0073b7,stroke-width:2px,color:#00508c
+    
+    %% NODES
+    entry["Entry Point<br>claims-status-entry.jsx"]:::entryNode
+    App["ClaimsStatusApp<br>Component"]:::componentNode
+    Page["YourClaimsPageV2<br>Component"]:::componentNode
+    Actions["Redux Actions<br>& Thunks"]:::actionNode
+    Act1["getClaims()<br>Action"]:::actionNode
+    Act2["getAppealsV2()<br>Action"]:::actionNode
+    API1["apiRequest<br>benefits_claims"]:::apiNode
+    API2["apiRequest<br>appeals"]:::apiNode
+    Endpoint1["GET /v0/benefits_claims"]:::apiNode
+    Endpoint2["GET /v0/appeals"]:::apiNode
+    Store["Redux Store<br>Claims & Appeals Data"]:::storeNode
+    ListUI["Claims & Appeals<br>List Interface"]:::uiNode
+    Items["Individual Claim<br>& Appeal Items"]:::uiNode
+    
+    %% CONNECTIONS
+    entry --> App
+    App --> Page
+    Page --> Actions
+    Actions --> Act1
+    Actions --> Act2
+    Act1 --> API1
+    Act2 --> API2
+    API1 --> Endpoint1
+    API2 --> Endpoint2
+    Act1 --> Store
+    Act2 --> Store
+    Store --> Page
+    Page --> ListUI
+    ListUI --> Items
+    
+    %% SUBGRAPH
     subgraph "Frontend Application (vets-website)"
-    entry[claims-status-entry.jsx] -->|"Mount App"| App[<b>ClaimsStatusApp</b> Component]
-    App -->|"Loads Route /your-claims"| Page[<b>YourClaimsPageV2</b> Component]
-    Page -->|"Dispatches Redux Actions on mount"| ActionsGroup{{Redux Actions / Thunks}}
-    ActionsGroup -->|"getClaims() thunk"| Act1[getClaims() in actions/index.js]
-    ActionsGroup -->|"getAppealsV2() thunk"| Act2[getAppealsV2() in actions/index.js]
-    Act1 -->|"apiRequest('/benefits_claims')"| APIHelper1[platform/utilities/api#apiRequest]
-    Act2 -->|"apiRequest('/appeals')"| APIHelper2[platform/utilities/api#apiRequest]
-    APIHelper1 -->|"HTTP GET"| /v0/benefits_claims
-    APIHelper2 -->|"HTTP GET"| /v0/appeals
-    Act1 -->|"onSuccess: dispatch CLAIMS_FETCH_SUCCESS"| Store[(Redux Store: claims data)]
-    Act2 -->|"onSuccess: dispatch APPEALS_FETCH_SUCCESS"| Store
-    Act1 -->|"onError: dispatch FETCH_FAILURE (claims)"| Store
-    Act2 -->|"onError: dispatch FETCH_FAILURE (appeals)"| Store
-    Store -->|"Updated state triggers re-render"| Page
-    Page -->|"Renders list"| ListUI[Claims & Appeals List JSX]
-    ListUI -->|"Maps through claims & appeals arrays"| Items[UI Items for each claim/appeal]
+    entry
+    App
+    Page
+    Actions
+    Act1
+    Act2
+    API1
+    API2
+    Endpoint1
+    Endpoint2
+    Store
+    ListUI
+    Items
     end
 ```
 
