@@ -40,28 +40,28 @@ The following flowchart captures the **high-level user journey** through the Cla
 
 ```mermaid
 flowchart TD
-    subgraph "VA.gov Claim Status Tool - User Journey"
-    U[User (Veteran)] -->|1. Navigate to VA.gov (Sign In)| L(Launch CST Entry)
-    L -->|2. Authentication Check| Auth[VA.gov Login Service]
-    Auth -->|Authenticated| CST[Open "Your Claims and Appeals" Page]
-    CST -->|3. Frontend API Calls Triggered| APICalls[(Fetch Data: Claims & Appeals)]
-    APICalls -->|GET /v0/benefits_claims| BE1[Vets-API Backend]
-    APICalls -->|GET /v0/appeals| BE2[Vets-API Backend]
-    BE1 -->|Calls Lighthouse API| LH[Lighthouse Claims API]
-    BE2 -->|Calls Caseflow API| CF[Caseflow Appeals API]
-    LH -->|Claims JSON| BE1
-    CF -->|Appeals JSON| BE2
-    BE1 -->|200 OK (claims)| FE[React Frontend]
-    BE2 -->|200 OK (appeals)| FE
-    FE -->|4. Render UI (claims + appeals list)| UI[Claims Status Page Displayed]
-    UI -->|5. User Interaction: View Claim Details, Upload Docs, etc.| Interact{Post-Load Actions}
-    Interact -->|GET /v0/benefits_claims/{id}| BE1Detail[Vets-API (Claim Detail)]
-    Interact -->|POST /v0/benefits_claims/{id}/submit5103| BE1Waiver[Vets-API (Submit 5103)]
-    Interact -->|POST /v0/benefits_claims/{id}/benefits_documents| BE1Upload[Vets-API (Upload)]
-    BE1Detail -->|Claim Detail (via Lighthouse)| FE
-    BE1Waiver -->|Submit Waiver (via Lighthouse)| FE
-    BE1Upload -->|Upload Status (via Doc API)| FE
-    FE -->|Update UI (detail view, confirmation, etc.)| U
+    subgraph "VA.gov Claim Status Tool User Journey"
+    U["User (Veteran)"] -->|"1. Navigate to VA.gov"| L["Launch CST Entry"]
+    L -->|"2. Authentication Check"| Auth["VA.gov Login Service"]
+    Auth -->|"Authenticated"| CST["Open Claims & Appeals Page"]
+    CST -->|"3. API Calls Triggered"| APICalls["Fetch Data"]
+    APICalls -->|"GET /v0/benefits_claims"| BE1["Vets-API Backend"]
+    APICalls -->|"GET /v0/appeals"| BE2["Vets-API Backend"]
+    BE1 -->|"Calls Lighthouse API"| LH["Lighthouse Claims API"]
+    BE2 -->|"Calls Caseflow API"| CF["Caseflow Appeals API"]
+    LH -->|"Claims JSON"| BE1
+    CF -->|"Appeals JSON"| BE2
+    BE1 -->|"200 OK (claims)"| FE["React Frontend"]
+    BE2 -->|"200 OK (appeals)"| FE
+    FE -->|"4. Render UI"| UI["Claims Status Page"]
+    UI -->|"5. User Interaction"| Interact["Post-Load Actions"]
+    Interact -->|"GET claim details"| BE1Detail["Vets-API (Claim Detail)"]
+    Interact -->|"POST submit waiver"| BE1Waiver["Vets-API (Submit 5103)"]
+    Interact -->|"POST upload docs"| BE1Upload["Vets-API (Upload)"]
+    BE1Detail -->|"Claim Detail"| FE
+    BE1Waiver -->|"Submit Waiver"| FE
+    BE1Upload -->|"Upload Status"| FE
+    FE -->|"Update UI"| U
     end
 ```
 
