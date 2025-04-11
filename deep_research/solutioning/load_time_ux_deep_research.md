@@ -46,7 +46,7 @@ flowchart TD
     classDef apiNode fill:#fff0f5,stroke:#ff69b4,stroke-width:2px,color:#c71585
     classDef pageNode fill:#f0fff0,stroke:#2e8b57,stroke-width:2px,color:#006400
     classDef actionNode fill:#fff8dc,stroke:#daa520,stroke-width:2px,color:#8b4513
-
+    
     %% NODES
     U["👤 User (Veteran)"]:::userNode
     L["🚀 Launch CST Entry"]:::actionNode
