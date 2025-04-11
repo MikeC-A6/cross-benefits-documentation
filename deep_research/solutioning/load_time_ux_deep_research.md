@@ -470,10 +470,17 @@ flowchart TD
     classDef storeNode fill:#ffe6e6,stroke:#cc0000,stroke-width:2px,color:#800000
     classDef listNode fill:#e0ffff,stroke:#5f9ea0,stroke-width:2px,color:#4682b4
     classDef itemNode fill:#fff0f5,stroke:#ff69b4,stroke-width:2px,color:#c71585
+    classDef titleNode fill:#fffaf0,stroke:#8b4513,stroke-width:2px,color:#654321
+    
+    %% TITLE SECTION WITH PADDING
+    subgraph sg1 ["Claims Status Tool"]
+    style sg1 fill:#fffaf0,stroke:#8b4513,stroke-width:2px,color:#654321
+    Subtitle["Frontend (React & Redux)"]
+    invisible1[" "]:::titleNode
+    invisible1 --- Subtitle
+    end
     
     %% NODES
-    Title["Claims Status Tool"]
-    Subtitle["Frontend (React & Redux)"]
     A["YourClaimsPageV2<br>Component"]:::componentNode
     B["Redux:<br>Dispatch Actions"]:::actionNode
     C["getClaims()<br>Action Creator"]:::actionNode
@@ -493,8 +500,7 @@ flowchart TD
     Q["Detail Link<br>Triggers getClaim()"]:::actionNode
     
     %% CONNECTIONS
-    Title --- Subtitle
-    Subtitle --- A
+    sg1 --- A
     A --> B
     B --> C
     B --> D
@@ -513,10 +519,8 @@ flowchart TD
     N --> P
     O --> Q
     
-    %% STYLING
-    Title:::componentNode
-    Subtitle:::componentNode
-    end
+    %% ADDITIONAL STYLING
+    Subtitle:::titleNode
 ```
 
 *Annotations:* The above diagram shows how the `YourClaimsPageV2` dispatches `getClaims` and `getAppealsV2` on mount. The `apiRequest` calls go out, come back, and through Redux reducers populate the store. Once the store has `claims list` and `appeals list`, the components render the list of items. Each item might have a link to details, which when clicked dispatches another action to fetch claim detail. (Appeal details might be included or might not have a separate endpoint if not needed.)
