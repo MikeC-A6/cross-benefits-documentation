@@ -1,3 +1,5 @@
+OpenAI Deep Research Output - Use with caution and validate information
+
 # VA Claims Status Tool – Technical User Journey & Performance Report
 
 ## Executive Summary
