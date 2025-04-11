@@ -65,10 +65,10 @@ flowchart TD
     BE1Upload["📤 Vets-API (Upload)"]:::serviceNode
     
     %% CONNECTIONS
-    U -->|"1. Navigate to VA.gov"| L
-    L -->|"2. Authentication"| Auth
+    U -->|"Navigate to VA.gov"| L
+    L -->|"Authentication"| Auth
     Auth -->|"Authenticated"| CST
-    CST -->|"3. API Calls"| APICalls
+    CST -->|"API Calls"| APICalls
     APICalls -->|"GET /v0/benefits_claims"| BE1
     APICalls -->|"GET /v0/appeals"| BE2
     BE1 -->|"Calls Lighthouse API"| LH
@@ -77,8 +77,8 @@ flowchart TD
     CF -->|"Appeals JSON"| BE2
     BE1 -->|"200 OK (claims)"| FE
     BE2 -->|"200 OK (appeals)"| FE
-    FE -->|"4. Render UI"| UI
-    UI -->|"5. User Interaction"| Interact
+    FE -->|"Render UI"| UI
+    UI -->|"User Interaction"| Interact
     Interact -->|"GET claim details"| BE1Detail
     Interact -->|"POST submit waiver"| BE1Waiver
     Interact -->|"POST upload docs"| BE1Upload
