@@ -462,7 +462,7 @@ Throughout the process, keep the focus on the **Veteran’s experience** – fas
 **Frontend React/Redux Diagram (Detailed):**
 
 ```mermaid
-flowchart LR
+flowchart TD
     %% STYLES
     classDef componentNode fill:#e6f7ff,stroke:#0073b7,stroke-width:2px,color:#00508c
     classDef actionNode fill:#fff8dc,stroke:#daa520,stroke-width:2px,color:#8b4513
@@ -472,6 +472,8 @@ flowchart LR
     classDef itemNode fill:#fff0f5,stroke:#ff69b4,stroke-width:2px,color:#c71585
     
     %% NODES
+    Title["Claims Status Tool"]
+    Subtitle["Frontend (React & Redux)"]
     A["YourClaimsPageV2<br>Component"]:::componentNode
     B["Redux:<br>Dispatch Actions"]:::actionNode
     C["getClaims()<br>Action Creator"]:::actionNode
@@ -491,6 +493,8 @@ flowchart LR
     Q["Detail Link<br>Triggers getClaim()"]:::actionNode
     
     %% CONNECTIONS
+    Title --- Subtitle
+    Subtitle --- A
     A --> B
     B --> C
     B --> D
@@ -509,26 +513,9 @@ flowchart LR
     N --> P
     O --> Q
     
-    %% SUBGRAPH
-    subgraph "Claims Status Tool Frontend (React & Redux)"
-    direction TB
-    A
-    B
-    C
-    D
-    E
-    F
-    G
-    H
-    I
-    J
-    K
-    L
-    M
-    N
-    O
-    P
-    Q
+    %% STYLING
+    Title:::componentNode
+    Subtitle:::componentNode
     end
 ```
 
