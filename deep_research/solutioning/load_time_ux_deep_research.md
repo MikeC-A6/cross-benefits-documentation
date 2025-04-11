@@ -39,7 +39,6 @@ The combination of these sources allowed us to construct a **complete picture of
 The following flowchart captures the **high-level user journey** through the Claims Status Tool, from start to finish. It highlights user-facing stages and key system actions:
 
 ```mermaid
-```mermaid
 flowchart TD
     %% STYLES
     classDef userNode fill:#e6f7ff,stroke:#0073b7,stroke-width:2px,color:#00508c,font-weight:bold
