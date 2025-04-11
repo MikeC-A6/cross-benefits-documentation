@@ -40,20 +40,14 @@ The following flowchart captures the **high-level user journey** through the Cla
 
 ```mermaid
 flowchart TD
-    %% TITLE POSITIONING
-    title[" "]:::hidden
-    
     %% STYLES
-    classDef userNode fill:#e6f7ff,stroke:#0073b7,stroke-width:2px,color:#00508c,font-weight:bold
+    classDef userNode fill:#e6f7ff,stroke:#0073b7,stroke-width:2px,color:#00508c
     classDef serviceNode fill:#f0f0ff,stroke:#9370db,stroke-width:2px,color:#4b0082
     classDef apiNode fill:#fff0f5,stroke:#ff69b4,stroke-width:2px,color:#c71585
     classDef pageNode fill:#f0fff0,stroke:#2e8b57,stroke-width:2px,color:#006400
     classDef actionNode fill:#fff8dc,stroke:#daa520,stroke-width:2px,color:#8b4513
-    classDef hidden display:none
 
     %% NODES
-    subgraph main["VA.gov Claim Status Tool - User Journey"]
-    title --> U
     U["👤 User (Veteran)"]:::userNode
     L["🚀 Launch CST Entry"]:::actionNode
     Auth["🔐 VA.gov Login Service"]:::serviceNode
@@ -72,9 +66,9 @@ flowchart TD
     
     %% CONNECTIONS
     U -->|"1. Navigate to VA.gov"| L
-    L -->|"2. Authentication Check"| Auth
+    L -->|"2. Authentication"| Auth
     Auth -->|"Authenticated"| CST
-    CST -->|"3. API Calls Triggered"| APICalls
+    CST -->|"3. API Calls"| APICalls
     APICalls -->|"GET /v0/benefits_claims"| BE1
     APICalls -->|"GET /v0/appeals"| BE2
     BE1 -->|"Calls Lighthouse API"| LH
@@ -88,11 +82,10 @@ flowchart TD
     Interact -->|"GET claim details"| BE1Detail
     Interact -->|"POST submit waiver"| BE1Waiver
     Interact -->|"POST upload docs"| BE1Upload
-    BE1Detail -->|"Claim Detail via Lighthouse"| FE
-    BE1Waiver -->|"Submit Waiver via Lighthouse"| FE
-    BE1Upload -->|"Upload Status via Doc API"| FE
+    BE1Detail -->|"Claim Detail"| FE
+    BE1Waiver -->|"Submit Waiver"| FE
+    BE1Upload -->|"Upload Status"| FE
     FE -->|"Update UI"| U
-    end
 ```
 
 **Figure: High-Level User Journey Flow** – From login to claim status page load and follow-on actions.
