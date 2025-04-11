@@ -12,12 +12,17 @@
 *   [Instrumentation Guidelines (Datadog, Google Analytics, Synthetic Testing)](#instrumentation-guidelines-datadog-google-analytics-synthetic-testing)
 *   [Recommendations and Optimization Opportunities](#recommendations-and-optimization-opportunities)
 *   [Diagram Appendix](#diagram-appendix)
+    *   [Diagram 1: High-Level User Journey](#diagram-1-high-level-user-journey-login-to-claimappeal-load-and-interaction)
+    *   [Diagram 2: Front-End Component Hierarchy](#diagram-2-front-end-component-hierarchy-and-performance-hooks)
+    *   [Diagram 3: Back-End API Interaction Flow](#diagram-3-back-end-api-interaction-flow-vets-api-lighthouse-caseflow)
+
+---
 
 ## Executive Summary
 
 The VA Claims Status Tool (CST) enables Veterans to check the status of their disability compensation claims and appeals online. It’s one of the most heavily used VA.gov tools, with over **4.1 million status checks in March 2025** alone.
 
-The CST consists of a `React`/`Redux` front-end on VA.gov and a `Rails`-based back-end (`vets-api`) that aggregates data from multiple VA systems – notably the VA **Lighthouse Benefits Claims API** for claim status and **Caseflow** for appeals status. This multi-source integration means performance is largely **network-bound**: users often wait on API calls to external systems before seeing their information. The front-end itself renders quickly once data arrives, but any slowness or errors from upstream services directly impacts the user experience.
+The CST consists of a `React`/`Redux` front-end on VA.gov and a `Rails`-based back-end (`vets-api`) that aggregates data from multiple VA systems – notably the VA **Lighthouse Benefits Claims API** for claim status and **Caseflow** for appeals status. This multi-source integration means performance is largely **network-bound**: users often wait on API calls to external systems before seeing their information. The front-end itself renders quickly once data arrives, but any slowness or errors from upstream services impacts the user experience.
 
 Currently, **page load times are suboptimal**. Users see loading spinners while data fetches complete. Initial data load latency has been averaging `~3.7` seconds, with a goal to reduce this by 50% (to `~1.86s`). Mobile users experience even slower loads – about **39% slower** than desktop on average – highlighting a gap that needs closing.
 
@@ -27,178 +32,161 @@ This report provides an end-to-end mapping of the user journey (from login throu
 
 The aim is to enable the CST product team (engineers and stakeholders alike) to clearly see how data flows through the system, where the bottlenecks are, and what steps can be taken next to achieve faster, more reliable service for Veterans.
 
+---
+
 ## User Journey & Architecture Mapping
 
-The CST user journey involves several stages: **authentication**, loading the **Claims & Appeals list**, viewing a **specific claim’s details**, and optionally uploading a **supporting document**. Below we map these end-to-end flows, covering the desktop and mobile experiences (which use the same flows, but mobile may incur extra network latency). We annotate where in each journey performance metrics can be captured (e.g. points to measure API timing, rendering milestones, etc.).
+The CST user journey involves several stages: **authentication**, loading the **Claims & Appeals list**, viewing a **specific claim’s details**, and optionally uploading a **supporting document**. Below we map these end-to-end flows, covering the desktop and mobile experiences. We annotate where in each journey performance metrics can be captured.
 
 ### Front-End Overview
 
-The Claims Status Tool is implemented as a `React` single-page application within VA.gov. When a user navigates to the tool (URL path `/track-claims/your-claims/`), the `React` app (often referred to as `ClaimsStatusApp`) is mounted. This in turn renders the `YourClaimsPageV2` component, which handles displaying the claims/appeals overview.
+The Claims Status Tool is implemented as a `React` single-page application within VA.gov. When a user navigates to `/track-claims/your-claims/`, the `React` app (often referred to as `ClaimsStatusApp`) mounts and renders the `YourClaimsPageV2` component for the claims/appeals overview.
 
-On component mount, it triggers `Redux` actions to fetch the user’s claims and appeals data from the back-end APIs. The app uses the VA.gov platform’s common `apiRequest` helper (a wrapper around `fetch`) to call the appropriate API endpoints.
-
-The front-end does minimal processing – it is mainly responsible for dispatching requests and then updating the UI when data is returned. Rendering the list of claims and appeals is not CPU-intensive (usually only a handful of items with text/status) and takes only a few milliseconds once data is in memory. Thus, **the bulk of user wait time is due to network calls and back-end processing**, not front-end rendering.
-
-The `React` app shows loading indicators (spinners) while waiting for responses. If the user navigates within the app (e.g. to a detail page and back), the `Redux` state can be reused without refetching data in that session. However, a full page reload or returning later will fetch fresh data to ensure up-to-date status.
+On component mount, it triggers `Redux` actions to fetch the user’s claims and appeals data from the back-end APIs using the platform’s `apiRequest` helper. The front-end does minimal processing; it mainly dispatches requests and updates the UI when data is returned. Rendering the list is usually fast (`< 100ms`), as the data volume is small. Thus, **the bulk of user wait time is due to network calls and back-end processing**, not front-end rendering. The app shows loading indicators while waiting. Session state in `Redux` can prevent refetching on simple navigation, but page reloads fetch fresh data.
 
 ### Back-End Overview
 
-On the server side, `vets-api` exposes REST endpoints under the `/v0` namespace that the front-end calls. For CST, the relevant endpoints include `GET /v0/claims` for retrieving the list of claims (and possibly decision review statuses) and `GET /v0/appeals` for retrieving appeals (Board of Veterans’ Appeals status). There are also endpoints for individual claim details (`GET /v0/claims/{id}`) and for uploading claim documents (`POST /v0/claims/{id}/documents`).
+The `vets-api` back-end exposes REST endpoints (e.g., `GET /v0/claims`, `GET /v0/appeals`, `GET /v0/claims/{id}`, `POST /v0/claims/{id}/documents`). It acts as an orchestrator: authenticating the user, then calling appropriate VA backend systems:
 
-The `vets-api` is essentially an orchestrator: it authenticates the user’s session (using the login token established via SSO), then on each request it **calls out to the appropriate VA backend systems** to get the data.
-*   For claim status, `vets-api` integrates with the **Lighthouse Benefits Claims API**. This is a VA-managed external API that interfaces with legacy systems (like the Benefits Gateway Service and `VBMS`) to fetch a Veteran’s claims info.
-*   For appeals status, `vets-api` calls the **Caseflow API**. This provides status of appeals and decision reviews (pulling from `Caseflow`’s database or legacy `VACOLS` records).
+*   **Lighthouse Benefits Claims API:** For claim status (interfacing with systems like `BGS` and `VBMS`).
+*   **Caseflow API:** For appeals status (interfacing with `Caseflow` database or `VACOLS`).
 
-In both cases, `vets-api` acts as a proxy/adapter: it makes an HTTP request to the external service, waits for the response, does minor processing (formatting JSON, error handling), and then forwards the data back to the front-end. This means the performance of CST is directly tied to the performance of these upstream APIs. If `Lighthouse` takes 2 seconds to return claims, the user waits those 2 seconds (plus a bit of overhead) to see their claims list.
-
-**No significant caching is currently implemented** for these calls – each page load triggers fresh data fetches. This ensures users see up-to-date information but means repeat visits incur full latency each time. If either `Lighthouse` or `Caseflow` is down or slow, it directly affects the CST user (potentially resulting in an error message or a long spinner).
+`vets-api` proxies these requests, waits for responses, does minor processing, and returns `JSON` to the front-end. CST performance is therefore directly tied to the performance of these upstream APIs. **No significant caching is currently implemented**, ensuring fresh data but incurring full latency on each visit. External service slowdowns directly impact users. (See **Diagram 3** in the Appendix for a visual of this backend flow).
 
 ### High-Level User Flow Stages
 
-The diagrams in the Appendix illustrate the major flow stages and system interactions for a typical user session, from login through viewing the claims list, and subsequently a claim detail and document upload. (See **Diagram 1**, **Diagram 2**, and **Diagram 3** in the Appendix).
+The end-to-end journey involves these main stages:
 
 **1. Login/Authentication:**
-A user must be authenticated to use CST. If the user navigates to the tool without an active session, VA.gov redirects them to sign in (e.g., via `login.gov` or `ID.me`). The authentication flow is handled by a separate SSO system. Once successful, the user is redirected back to the CST URL with a valid session token. Our focus is on the CST application performance *after* login.
+Users must sign in (e.g., via `login.gov` or `ID.me`) before accessing CST. This SSO flow is handled separately. Our focus is on performance *after* login.
 
 **2. Claims & Appeals List Load:**
-After login, the user lands on the “Your claims and appeals” page. The front-end immediately issues **two API requests in parallel** – one to `GET /v0/claims` and one to `GET /v0/appeals`. These hit the `vets-api` back-end almost simultaneously.
+Upon landing on the "Your claims and appeals" page, the front-end issues **two API requests in parallel**: `GET /v0/claims` and `GET /v0/appeals`. `vets-api` handles these concurrently, calling `Lighthouse` and `Caseflow` simultaneously. This parallel design avoids unnecessary serialization.
 
-`vets-api` calls the `Lighthouse` API (for claims) and the `Caseflow` API (for appeals) concurrently. This parallel design is crucial. The user’s browser receives two responses. The UI currently waits until **both** responses are received to remove the loading spinner, meaning the slower call dictates the wait.
-
-Once both datasets are ready, the `React` components render a unified view. This page typically shows each claim/appeal as a summary card or row. Rendering this list is very fast. The **network/API latency** dominates this stage. The key metric here is **Time to Data** (initial data load time). (See **Diagram 1** in the Appendix for this flow).
+The browser receives two `JSON` responses. Currently, the UI waits for **both** to complete before removing the loading spinner, meaning the slower call dictates the wait time. Once data is ready, `React` renders the unified list. The dominant factor here is **network/API latency**. The key user metric is **Time to Data** (initial load time). (See **Diagram 1** in the Appendix for this primary flow).
 
 **3. Claim Detail View:**
-From the list, the user can select a specific claim to view more details. The front-end navigates (client-side route change) and loads the Claim Detail component.
-
-If detailed data isn't already loaded, it makes a request to `GET /v0/claims/{id}`. `vets-api` calls the `Lighthouse` Claims API for detailed status. The response is sent back, and the front-end populates the detail view. The user sees a spinner until data arrives. The latency is again mostly the external API call to `Lighthouse`. The **Time to Detail** (from clicking a claim to seeing the details) should be measured.
+Selecting a specific claim triggers a client-side route change (e.g., `/track-claims/your-claims/{claimId}/detail`). The `Claim Detail` component loads. If detailed data isn't already cached in `Redux`, it fetches it via `GET /v0/claims/{id}`. `vets-api` calls `Lighthouse` again for detailed information. The user sees a loading state until the data arrives. The latency is again driven by the `Lighthouse` call. We measure **Time to Detail** (click to details displayed).
 
 **4. Document Upload:**
-Within a claim’s detail view, users can upload supporting documents. Clicking “Submit” after selecting a file issues a `POST /v0/claims/{id}/documents` request to `vets-api`.
+Users can upload supporting evidence via a form in the claim detail view. Clicking "Submit" sends a `POST /v0/claims/{id}/documents` request with the file to `vets-api`. `vets-api` forwards the file to the upload service (e.g., `EVSS` or `Lighthouse`).
 
-`vets-api` forwards the file to the evidence upload service (likely `EVSS` or a `Lighthouse` endpoint). The upload process is typically asynchronous – the API returns quickly with a job ID (HTTP 202 Accepted). The front-end shows a confirmation (“Your document has been uploaded...”). The document appears in the list later after processing.
-
-For performance, the **upload request latency** (click to confirmation) is typically just a few seconds. This involves network upload time (slower on mobile) and the server response. (See **Diagram 3** in the Appendix for backend flow, and adapt concept for upload POST).
+This process is typically asynchronous; the API returns quickly (HTTP 202 Accepted) with a job ID. The front-end confirms the upload ("Your document has been uploaded..."). The document appears later after backend processing. The key metric is **upload request latency** (click to confirmation), usually under a few seconds.
 
 **Mobile vs Desktop:**
-The flows are identical, but mobile devices experience longer load times due to higher network latency and potentially slower processing. If combined API calls take 2.5s on desktop, they might take `~3.5s` on mobile 4G (about 39% slower). The primary mobile impact is network-related: higher **Time to First Byte (TTFB)** and lower download throughput. We should measure metrics separately for mobile and desktop sessions.
+Flows are identical, but mobile performance differs due to network latency and potentially device speed. If desktop load is 2.5s, mobile 4G might be `~3.5s` (approx. 39% slower). The main impact is higher **TTFB** and lower throughput on mobile networks. Metrics should be segmented by device type. Slower networks (3G) can exacerbate delays.
 
 ### Front-End Components & Rendering Details
 
-Connecting the journey to the code:
+Code structure alignment:
 
--   **Application Initialization:** `ClaimsStatusApp` loads `YourClaimsPageV2`. A `React` `useEffect` dispatches actions (`getClaims()`, `getAppeals()`) which call `apiRequest('/v0/claims')`, etc.
--   **State Management:** Data is stored in the `Redux` store. Components subscribe to this state. A loading flag controls the spinner display.
--   **Partial Rendering Logic:** Current code waits for both calls. An enhancement could be to render partial results sooner. Feature flags (`TogglerRoute`) might exist for different versions.
--   **Claim Detail Loading:** Navigating to detail checks state; if data missing, fetches via `apiRequest(/v0/claims/${id})`. Updates `Redux` state (`state.claims.detail[id] = {...}`). Detail component renders the info.
+-   **Initialization:** `ClaimsStatusApp` mounts `YourClaimsPageV2`. `useEffect` dispatches `getClaims()`/`getAppeals()` actions, triggering `apiRequest`.
+-   **State Management:** Data stored in `Redux` store (`state.claims.list`, etc.). Components subscribe. Loading flags control spinners.
+-   **Partial Rendering:** Currently waits for both calls. Could be enhanced to render partial results sooner by modifying rendering logic in `YourClaimsPageV2`.
+-   **Detail Loading:** Checks `Redux` state; fetches via `apiRequest(/v0/claims/${id})` if needed. Updates state (`state.claims.detail[id]`). Detail component renders. (See **Diagram 2** in the Appendix for component hierarchy).
+
+---
 
 ## Performance Metrics & Measurement
 
-To improve CST, we need to measure where time is spent using key performance metrics:
+Key metrics to track CST performance:
 
--   **API Latency (Response Time):** Time for `vets-api` to handle `/claims`, `/appeals`, etc. High latency means longer waits. Currently averages `~3.7s`, goal `~1.86s`. Measure median, p90, p95.
-    -   **Where to measure:** Datadog APM (server-side), Browser DevTools/RUM (client-side).
+-   **API Latency:** Time for `vets-api` endpoints (`/claims`, `/appeals`) to respond. Directly impacts user wait time. Goal: Reduce average from `~3.7s` to `~1.86s`. Measure median, p90, p95.
+    *   *Measurement:* Datadog APM, Browser DevTools/RUM.
 
--   **Number of API Calls per CST Request:** How many network requests load data. Initial page: 2 calls. Aim to minimize redundant calls. Fewer calls reduce overhead, especially on mobile.
-    -   **Where to measure:** Front-end instrumentation (count requests), Network logs, GA events.
+-   **Number of API Calls:** How many network requests per user action. Initial load = 2. Minimize redundant calls.
+    *   *Measurement:* Front-end instrumentation, Network logs, GA Events.
 
--   **Parallel vs. Sequential Requests:** Confirm calls run in parallel. Measure the time difference between the two responses. If Lighthouse internal calls parallelize, expect lower latency.
-    -   **Where to measure:** Datadog APM traces (breakdown of external call timing), Browser Network tab timings.
+-   **Parallel vs. Sequential:** Confirm `vets-api` calls to `Lighthouse`/`Caseflow` run in parallel. Measure time difference between responses.
+    *   *Measurement:* Datadog APM traces, Browser Network timings.
 
--   **Largest Contentful Paint (LCP):** User-centric metric marking when the main content (claims list) becomes visible. Goal: improve LCP by `>1s`.
-    -   **Where to measure:** Front-end Performance API (`PerformanceObserver`), RUM tools (Datadog RUM), Google Analytics (custom event), Synthetic testing (Lighthouse).
+-   **Largest Contentful Paint (LCP):** Time until the main content (claims list) is visible. Goal: Improve by `>1s`.
+    *   *Measurement:* RUM tools (Datadog), `PerformanceObserver` + GA, Synthetic tests (Lighthouse).
 
--   **Time to First Byte (TTFB):** How quickly the server starts responding to API requests (`/claims`, `/appeals`). Lower TTFB means quicker feedback.
-    -   **Where to measure:** Synthetic monitors, Datadog APM (approximated by server handling time), GA Site Speed/User Timing.
+-   **Time to First Byte (TTFB):** How quickly `vets-api` starts sending API response data. Lower is better.
+    *   *Measurement:* Synthetic monitors, Datadog APM (server time), GA Site Speed/User Timing.
 
--   **Interaction to Next Paint (INP):** Measures responsiveness to user interactions (clicks). Goal: optimize interactivity.
-    -   **Where to measure:** Browser Event Timing API, RUM tools, Lighthouse v10+, GA User Timing events.
+-   **Interaction to Next Paint (INP):** Responsiveness to user interactions (e.g., clicks). Aim for quick feedback.
+    *   *Measurement:* RUM tools, Event Timing API + GA, Lighthouse v10+.
 
--   **Mobile Load Time Gap:** Difference in metrics (LCP, Time to Data) between mobile and desktop. Currently ~39% slower. Aim to shrink this gap.
-    -   **Where to measure:** GA or Datadog RUM segmented by device type, Synthetic tests with mobile profiles.
+-   **Mobile Load Time Gap:** Difference in LCP/Time to Data between mobile and desktop. Aim to reduce the current `~39%` gap.
+    *   *Measurement:* RUM/GA segmented by device, Synthetic tests with mobile profiles.
 
--   **Network Impact on Mobile:** Analyze how slow networks (e.g., 3G) affect performance.
-    -   **Where to measure:** Synthetic tests with network throttling (WebPageTest, Lighthouse), RUM data capturing connection type.
+-   **Network Impact on Mobile:** Analyze how 3G/slow networks affect load times.
+    *   *Measurement:* Synthetic tests with network throttling, RUM data with connection type.
 
-Measuring these provides a full picture of performance bottlenecks and tracks improvement progress.
+---
 
 ## Instrumentation Guidelines (Datadog, Google Analytics, Synthetic Testing)
 
-Use available tools to gather metrics:
+Leverage VA tools for comprehensive measurement:
 
 **Datadog (APM & RUM):**
--   **APM (`vets-api`):**
-    -   Track **Latency** (avg, p90, p95) for CST endpoints (`/claims`, `/appeals`). Set alerts.
-    -   Instrument **External call timing** (to Lighthouse, Caseflow). See breakdown in traces.
-    *   Monitor **Error Rates** (4xx/5xx). Alert on spikes.
-    *   Track **Throughput** (requests/min) to correlate load with latency.
-    -   Monitor basic server **Infrastructure** (CPU, memory) if needed.
--   **RUM (VA.gov Front-End):**
-    -   Capture **Core Web Vitals** (LCP, FID/INP, CLS) for real users.
-    -   Track **User Navigation Timings** and custom spans for API call completion.
-    -   Segment data by device, browser, etc.
+-   **APM (`vets-api`):** Track endpoint **Latency**, **External Call Timing** (to Lighthouse/Caseflow), **Error Rates**, and **Throughput**. Set up alerts.
+-   **RUM (Front-End):** Capture **Core Web Vitals** (LCP, INP), **User Timings**, and segment by device/browser.
 
 **Google Analytics (GA):**
--   Use **Custom Events / User Timing API:**
-    -   Send `claims_data_loaded` event with time from page start ("Time to Data"). Segment by device.
-    -   Send Core Web Vitals (LCP, FID) as custom events using `web-vitals` library.
-    -   Use `performance.measure()` to send detailed user timings (e.g., "CST Data Fetch Time").
--   Track **Bounce Rate** on CST page – correlate with load times.
--   Track **Engagement** (clicks on details, uploads) – see if improved performance increases interaction. Ensure adequate sampling in GA settings.
+-   Use **Custom Events/User Timing:**
+    *   Log "Time to Data" (e.g., `claims_data_loaded` event with duration).
+    *   Send Core Web Vitals using `web-vitals` library.
+    *   Track detailed timings like "CST Data Fetch Time".
+-   Monitor **Bounce Rate** and **Engagement** (clicks, uploads) in relation to performance.
 
 **Synthetic Testing:**
--   Use Lighthouse CI, WebPageTest, etc., for scheduled tests.
--   **Test Scenarios:** Load claims list page (desktop & mobile profiles), claim detail page. Simulate upload endpoint call.
--   **Metrics:** Get lab measures of LCP, TTFB, FCP, INP. Track release-over-release.
--   **Mobile Network Simulation:** Test on 3G to quantify network impact.
--   **Regression Budgets:** Integrate into CI/CD. Set thresholds (e.g., "LCP < 3s on 4G mobile") to catch regressions.
+-   Use Lighthouse CI, WebPageTest, etc.
+-   **Scenarios:** Test claims list & detail pages on desktop/mobile profiles (including 3G).
+-   **Metrics:** Capture lab LCP, TTFB, INP.
+-   **Budgets:** Integrate into CI/CD to catch regressions automatically.
 
-Combining Datadog (server + RUM), GA (client-side scale), and Synthetic Testing (controlled lab) gives a 360° view. Create a consolidated dashboard (e.g., Domo) for easy monitoring.
+Combine insights from Datadog, GA, and synthetic tests onto a consolidated dashboard for a full performance picture.
+
+---
 
 ## Recommendations and Optimization Opportunities
 
-Based on the analysis, here are recommendations to improve CST performance:
+Prioritized actions to improve CST performance:
 
-1.  **Implement Comprehensive Monitoring & Alerts:** Set up Datadog dashboards, alerts, and GA custom metrics *first*. This guides optimization and validates improvements.
+1.  **Implement Comprehensive Monitoring & Alerts:** Establish baseline metrics using Datadog, GA, and synthetics *before* optimization. This guides efforts and validates success.
 
 2.  **Optimize Front-End Data Handling:**
-    *   **Display Partial Results:** Modify UI to show claims/appeals as soon as their respective API calls return, reducing perceived wait time.
-    *   **Client-Side Caching:** Implement short-term caching (e.g., `sessionStorage` or `Redux` persistence for 1-5 minutes) to speed up repeat visits, especially helpful on mobile. Refresh data in the background.
-    *   **Optimize Bundle Size:** Ensure the CST JavaScript bundle is minimized via code-splitting if needed.
-    *   **Improve Interaction Feedback:** Provide immediate visual feedback (e.g., spinners, disabled states) upon user interactions like clicks or uploads.
+    *   **Display Partial Results:** Render claims or appeals data as soon as it arrives, reducing perceived wait.
+    *   **Client-Side Caching:** Implement short-term caching (1-5 min) in `sessionStorage` or `Redux` for faster repeat loads, especially on mobile.
+    *   **Optimize Bundle Size:** Ensure JS bundle is minimized via code-splitting if large.
+    *   **Improve Interaction Feedback:** Show immediate loading states on clicks/uploads.
 
 3.  **Optimize Back-End and API Usage:**
-    *   **Advocate for Lighthouse Improvements:** Support and leverage Lighthouse team efforts for internal parallelization and caching within their API.
-    *   **Server-Side Caching (`vets-api`):** Implement a short-lived cache (e.g., Redis for 30-60 seconds per user) for `/claims` and `/appeals` responses to reduce load on upstream systems and speed up responses for frequent refreshes.
-    *   **Streamline `vets-api` Processing:** Ensure no inefficient data transformations occur.
-    *   **Explore HTTP/2 or HTTP/3:** Use modern protocols for backend-to-backend calls if beneficial.
-    *   **Consider SSR/Edge Rendering (Longer Term):** Investigate if server-side rendering could improve initial load, especially on mobile, though complex with personalized data.
+    *   **Advocate for Upstream Improvements:** Collaborate with `Lighthouse` on their internal parallelization and caching efforts.
+    *   **Server-Side Caching (`vets-api`):** Introduce short-lived `Redis` caching (30-60s per user) for `/claims`/`/appeals` responses.
+    *   **Streamline Processing:** Ensure `vets-api` avoids heavy data transformations.
+    *   **Explore Modern Protocols:** Use HTTP/2 or HTTP/3 for backend calls if beneficial.
 
 4.  **Improve Error Handling & Resilience:**
-    *   **Graceful Partial Failures:** Update front-end to display available data even if one source fails (e.g., show appeals if claims call errors out), with clear error messages.
-    *   **Implement Retries:** Add limited, smart retries for transient network errors when calling external APIs.
-    *   **Proactive Messaging:** Inform users during known maintenance windows of upstream services.
+    *   **Graceful Partial Failures:** Show available data even if one source fails, with clear error messages.
+    *   **Implement Retries:** Add limited retries for transient external API errors.
+    *   **Proactive Messaging:** Inform users during known upstream maintenance.
 
 5.  **Mobile-Specific Optimizations:**
-    *   **Use Network Information API:** Potentially adapt behavior on very slow connections (e.g., 3G), though CST is mostly text.
-    *   **Ensure Compression:** Verify `gzip` is enabled for all API responses.
-    *   **Test on Low-End Devices:** Ensure JS performance is acceptable on older hardware.
-    *   **Monitor the Mobile Gap:** Track metrics specifically for mobile users to ensure improvements benefit them proportionally.
+    *   **Ensure Compression:** Verify `gzip` is enabled for API responses.
+    *   **Monitor the Mobile Gap:** Track mobile metrics specifically to ensure improvements reduce the gap.
+    *   **Test on Low-End Devices:** Ensure acceptable JS performance.
 
-6.  **Collaboration with Upstream Teams (Lighthouse, Caseflow):**
-    *   Share performance data and bottlenecks observed in CST with API provider teams.
-    *   Coordinate on testing and adopting new, faster API versions or features.
+6.  **Collaboration with Upstream Teams (`Lighthouse`, `Caseflow`):**
+    *   Share performance data regularly to align priorities.
+    *   Coordinate testing and adoption of faster API versions.
 
 7.  **Continuous Improvement & Reporting:**
-    *   Treat performance as an ongoing feature, setting new goals after initial improvements.
-    *   Document changes and results for stakeholders and future teams. Update product documentation with current architecture and performance stats.
+    *   Treat performance as an ongoing feature. Set new goals after initial wins.
+    *   Document improvements and maintain updated performance stats in product documentation.
 
-By focusing on the critical API path, implementing robust monitoring, and applying these optimizations, the VA can significantly improve the CST experience, making it faster and more reliable for Veterans, especially on mobile devices.
+Focusing on optimizing the **critical API path** (Lighthouse/Caseflow calls) and **measuring effectively** will yield the most significant improvements, leading to a faster, more reliable CST for Veterans.
+
+---
 
 ## Diagram Appendix
 
-Below are the Mermaid diagrams illustrating various aspects of the CST architecture and performance-critical points. These diagrams are written in Mermaid syntax for compatibility with GitHub Markdown rendering.
+Visual representations of the CST architecture and user flows.
 
-**Diagram 1: High-Level User Journey (Login to Claim/Appeal Load and Interaction)**
+### Diagram 1: High-Level User Journey (Login to Claim/Appeal Load and Interaction)
 
 This sequence diagram shows the steps from a Veteran logging in and navigating to the Claims Status Tool, through the data fetching process, to a user interaction. Key performance measurement points (start/stop timers, LCP, INP, TTFB) are annotated in the flow.
 
@@ -231,9 +219,9 @@ sequenceDiagram
     Note right of Browser: **INP** – Measure time to next paint after click
 ```
 
-**Diagram 2: Front-End Component Hierarchy and Performance Hooks**
+### Diagram 2: Front-End Component Hierarchy and Performance Hooks
 
-This flowchart illustrates the structure of the React/Redux front-end for CST and highlights where performance measurements occur. The diagram shows the main application component, subcomponents for claims and appeals, the Redux store interactions, and the points at which we start/stop timers for performance.
+This flowchart illustrates the structure of the `React`/`Redux` front-end for CST and highlights where performance measurements occur. It shows the main application component, subcomponents, `Redux` store interactions, and points for performance timing.
 
 ```mermaid
 flowchart TD
@@ -258,9 +246,9 @@ flowchart TD
     CSTApp --> INPpoint[INP: UI updated after interaction]
 ```
 
-**Diagram 3: Back-End API Interaction Flow (vets-api, Lighthouse, Caseflow)**
+### Diagram 3: Back-End API Interaction Flow (vets-api, Lighthouse, Caseflow)
 
-This sequence diagram focuses on the back-end processing when the front-end requests claim status data. It shows the `vets-api` handling of the request and the parallel calls to Lighthouse and Caseflow. Performance annotations indicate where we measure external call latency and overall response time (TTFB).
+This sequence diagram focuses on the back-end processing when the front-end requests claim status data. It shows `vets-api` handling the request and the parallel calls to `Lighthouse` and `Caseflow`. Annotations indicate where external call latency and overall response time (TTFB) are measured.
 
 ```mermaid
 sequenceDiagram
