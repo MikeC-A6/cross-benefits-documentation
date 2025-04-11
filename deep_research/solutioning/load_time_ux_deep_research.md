@@ -463,24 +463,72 @@ Throughout the process, keep the focus on the **Veteran’s experience** – fas
 
 ```mermaid
 flowchart LR
+    %% STYLES
+    classDef componentNode fill:#e6f7ff,stroke:#0073b7,stroke-width:2px,color:#00508c
+    classDef actionNode fill:#fff8dc,stroke:#daa520,stroke-width:2px,color:#8b4513
+    classDef apiNode fill:#f0fff0,stroke:#2e8b57,stroke-width:2px,color:#006400
+    classDef storeNode fill:#ffe6e6,stroke:#cc0000,stroke-width:2px,color:#800000
+    classDef listNode fill:#e0ffff,stroke:#5f9ea0,stroke-width:2px,color:#4682b4
+    classDef itemNode fill:#fff0f5,stroke:#ff69b4,stroke-width:2px,color:#c71585
+    
+    %% NODES
+    A["YourClaimsPageV2<br>Component"]:::componentNode
+    B["Redux:<br>Dispatch Actions"]:::actionNode
+    C["getClaims()<br>Action Creator"]:::actionNode
+    D["getAppealsV2()<br>Action Creator"]:::actionNode
+    E["apiRequest<br>benefits_claims"]:::apiNode
+    F["apiRequest<br>appeals"]:::apiNode
+    G["HTTP GET<br>benefits_claims"]:::apiNode
+    H["HTTP GET<br>appeals"]:::apiNode
+    I["Redux Reducer:<br>Store Claims"]:::storeNode
+    J["Redux Reducer:<br>Store Appeals"]:::storeNode
+    K["Claims List<br>in State"]:::storeNode
+    L["Appeals List<br>in State"]:::storeNode
+    M["ClaimsStatusApp<br>Re-renders"]:::componentNode
+    N["Claims & Appeals<br>List Component"]:::listNode
+    O["ClaimItem<br>Components"]:::itemNode
+    P["AppealItem<br>Components"]:::itemNode
+    Q["Detail Link<br>Triggers getClaim()"]:::actionNode
+    
+    %% CONNECTIONS
+    A --> B
+    B --> C
+    B --> D
+    C --> E
+    D --> F
+    E --> G
+    F --> H
+    G --> I
+    H --> J
+    I --> K
+    J --> L
+    K --> M
+    L --> M
+    M --> N
+    N --> O
+    N --> P
+    O --> Q
+    
+    %% SUBGRAPH
     subgraph "Claims Status Tool Frontend (React & Redux)"
     direction TB
-    A[YourClaimsPageV2 Component] -->|Mount| B{Redux: dispatch actions}
-    B --> C[getClaims() action creator]
-    B --> D[getAppealsV2() action creator]
-    C -->|calls| E[apiRequest('/v0/benefits_claims')]
-    D -->|calls| F[apiRequest('/v0/appeals')]
-    E --> G[HTTP GET /v0/benefits_claims]
-    F --> H[HTTP GET /v0/appeals]
-    G --> I{{Redux reducer: store claims data}}
-    H --> J{{Redux reducer: store appeals data}}
-    I --> K[claims list in state]
-    J --> L[appeals list in state]
-    K & L --> M[ClaimsStatusApp re-renders]
-    M --> N[Claims & Appeals List component]
-    N --> O[ClaimItem components...]
-    N --> P[AppealItem components...]
-    O --> Q[Detail Link, possibly triggers getClaim() on click]
+    A
+    B
+    C
+    D
+    E
+    F
+    G
+    H
+    I
+    J
+    K
+    L
+    M
+    N
+    O
+    P
+    Q
     end
 ```
 
