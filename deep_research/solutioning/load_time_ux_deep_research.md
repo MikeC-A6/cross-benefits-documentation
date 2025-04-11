@@ -40,11 +40,11 @@ The following flowchart captures the **high-level user journey** through the Cla
 
 ```mermaid
 flowchart TD
-    subgraph "VA.gov Claim Status Tool – User Journey"
+    subgraph "VA.gov Claim Status Tool - User Journey"
     U[User (Veteran)] -->|1. Navigate to VA.gov (Sign In)| L(Launch CST Entry)
     L -->|2. Authentication Check| Auth[VA.gov Login Service]
     Auth -->|Authenticated| CST[Open "Your Claims and Appeals" Page]
-    CST -->|3. Frontend API Calls Triggered| APICalls((Fetch Data: Claims & Appeals))
+    CST -->|3. Frontend API Calls Triggered| APICalls[(Fetch Data: Claims & Appeals)]
     APICalls -->|GET /v0/benefits_claims| BE1[Vets-API Backend]
     APICalls -->|GET /v0/appeals| BE2[Vets-API Backend]
     BE1 -->|Calls Lighthouse API| LH[Lighthouse Claims API]
@@ -53,8 +53,8 @@ flowchart TD
     CF -->|Appeals JSON| BE2
     BE1 -->|200 OK (claims)| FE[React Frontend]
     BE2 -->|200 OK (appeals)| FE
-    FE -->|4. Render UI (claims + appeals list)| UI["Claims Status Page Displayed"]
-    UI -->|5. User Interaction: View Claim Details, Upload Docs, etc.| Interact{{Post-Load Actions}}
+    FE -->|4. Render UI (claims + appeals list)| UI[Claims Status Page Displayed]
+    UI -->|5. User Interaction: View Claim Details, Upload Docs, etc.| Interact{Post-Load Actions}
     Interact -->|GET /v0/benefits_claims/{id}| BE1Detail[Vets-API (Claim Detail)]
     Interact -->|POST /v0/benefits_claims/{id}/submit5103| BE1Waiver[Vets-API (Submit 5103)]
     Interact -->|POST /v0/benefits_claims/{id}/benefits_documents| BE1Upload[Vets-API (Upload)]
