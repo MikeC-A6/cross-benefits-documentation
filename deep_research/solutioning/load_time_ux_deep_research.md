@@ -39,28 +39,54 @@ The combination of these sources allowed us to construct a **complete picture of
 The following flowchart captures the **high-level user journey** through the Claims Status Tool, from start to finish. It highlights user-facing stages and key system actions:
 
 ```mermaid
+```mermaid
 flowchart TD
-    subgraph "VA.gov Claim Status Tool User Journey"
-    U["User (Veteran)"] -->|"1. Navigate to VA.gov"| L["Launch CST Entry"]
-    L -->|"2. Authentication Check"| Auth["VA.gov Login Service"]
-    Auth -->|"Authenticated"| CST["Open Claims & Appeals Page"]
-    CST -->|"3. API Calls Triggered"| APICalls["Fetch Data"]
-    APICalls -->|"GET /v0/benefits_claims"| BE1["Vets-API Backend"]
-    APICalls -->|"GET /v0/appeals"| BE2["Vets-API Backend"]
-    BE1 -->|"Calls Lighthouse API"| LH["Lighthouse Claims API"]
-    BE2 -->|"Calls Caseflow API"| CF["Caseflow Appeals API"]
+    %% STYLES
+    classDef userNode fill:#e6f7ff,stroke:#0073b7,stroke-width:2px,color:#00508c,font-weight:bold
+    classDef serviceNode fill:#f0f0ff,stroke:#9370db,stroke-width:2px,color:#4b0082
+    classDef apiNode fill:#fff0f5,stroke:#ff69b4,stroke-width:2px,color:#c71585
+    classDef pageNode fill:#f0fff0,stroke:#2e8b57,stroke-width:2px,color:#006400
+    classDef actionNode fill:#fff8dc,stroke:#daa520,stroke-width:2px,color:#8b4513
+
+    %% NODES
+    subgraph main["VA.gov Claim Status Tool - User Journey"]
+    U["👤 User (Veteran)"]:::userNode
+    L["🚀 Launch CST Entry"]:::actionNode
+    Auth["🔐 VA.gov Login Service"]:::serviceNode
+    CST["📋 Open Claims & Appeals Page"]:::pageNode
+    APICalls["🔄 Fetch Data"]:::apiNode
+    BE1["⚙️ Vets-API Backend (Claims)"]:::serviceNode
+    BE2["⚙️ Vets-API Backend (Appeals)"]:::serviceNode
+    LH["💡 Lighthouse Claims API"]:::apiNode
+    CF["📊 Caseflow Appeals API"]:::apiNode
+    FE["⚛️ React Frontend"]:::serviceNode
+    UI["🖥️ Claims Status Page"]:::pageNode
+    Interact["🔍 Post-Load Actions"]:::actionNode
+    BE1Detail["📄 Vets-API (Claim Detail)"]:::serviceNode
+    BE1Waiver["📝 Vets-API (Submit 5103)"]:::serviceNode
+    BE1Upload["📤 Vets-API (Upload)"]:::serviceNode
+    
+    %% CONNECTIONS
+    U -->|"1. Navigate to VA.gov"| L
+    L -->|"2. Authentication Check"| Auth
+    Auth -->|"Authenticated"| CST
+    CST -->|"3. API Calls Triggered"| APICalls
+    APICalls -->|"GET /v0/benefits_claims"| BE1
+    APICalls -->|"GET /v0/appeals"| BE2
+    BE1 -->|"Calls Lighthouse API"| LH
+    BE2 -->|"Calls Caseflow API"| CF
     LH -->|"Claims JSON"| BE1
     CF -->|"Appeals JSON"| BE2
-    BE1 -->|"200 OK (claims)"| FE["React Frontend"]
+    BE1 -->|"200 OK (claims)"| FE
     BE2 -->|"200 OK (appeals)"| FE
-    FE -->|"4. Render UI"| UI["Claims Status Page"]
-    UI -->|"5. User Interaction"| Interact["Post-Load Actions"]
-    Interact -->|"GET claim details"| BE1Detail["Vets-API (Claim Detail)"]
-    Interact -->|"POST submit waiver"| BE1Waiver["Vets-API (Submit 5103)"]
-    Interact -->|"POST upload docs"| BE1Upload["Vets-API (Upload)"]
-    BE1Detail -->|"Claim Detail"| FE
-    BE1Waiver -->|"Submit Waiver"| FE
-    BE1Upload -->|"Upload Status"| FE
+    FE -->|"4. Render UI"| UI
+    UI -->|"5. User Interaction"| Interact
+    Interact -->|"GET claim details"| BE1Detail
+    Interact -->|"POST submit waiver"| BE1Waiver
+    Interact -->|"POST upload docs"| BE1Upload
+    BE1Detail -->|"Claim Detail via Lighthouse"| FE
+    BE1Waiver -->|"Submit Waiver via Lighthouse"| FE
+    BE1Upload -->|"Upload Status via Doc API"| FE
     FE -->|"Update UI"| U
     end
 ```
