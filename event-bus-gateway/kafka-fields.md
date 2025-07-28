@@ -202,6 +202,30 @@ Based on test cases in `src/test/resources/PositiveTestCase1.json`:
 - **Eventbus Gateway**: [eventbus-gateway repo](https://github.com/department-of-veterans-affairs/eventbus-gateway)
 - **Readiness Review**: [Checklist](https://github.com/department-of-veterans-affairs/va.gov-team-sensitive/issues/4076)
 
+## Code Validation Results
+
+**IMPORTANT**: After analyzing the actual Kafka Streams topology code, this application is a **pure filter** - it does NOT transform or select specific fields.
+
+### Actual Data Flow
+```java
+// From DependencyProvider.java - Line ~460
+builder.stream(inputTopic, Consumed.with(keySerde, valueSerde))
+    .peek((k, v) -> LOG.debug("Observed event: {}", v))
+    .filter(recordFilter)  // Only filters records, doesn't transform fields
+    .peek((k, v) -> LOG.debug("Send event: {}", v))
+    .to(outputTopic, Produced.with(keySerde, valueSerde));  // Same record structure
+```
+
+### What Actually Gets Posted to Kafka
+
+**ALL FIELDS** from the input `DecisionLetterAvailabilityRecord` are posted to Kafka **unchanged** if the record passes the filters.
+
+- **Key**: `ClaimId` (Long)
+- **Value**: Complete `DecisionLetterAvailabilityRecord` with all ~22 fields intact
+- **No field transformation**: Input record = Output record (when filters pass)
+
+The filtering logic controls **WHICH** records get published, not **WHICH** fields are included.
+
 ## Summary
 
-The Event Bus Decision Letter Filter Producer acts as a selective gateway, ensuring that only relevant claim lifecycle events—those representing actual decision letter availability for veterans who filed their own claims—are published to the `decision_letter_availability` topic. The filtering criteria ensure high data quality and relevance for downstream consumers. 
+The Event Bus Decision Letter Filter Producer acts as a **selective passthrough filter**, ensuring that only relevant claim lifecycle events—those representing actual decision letter availability for veterans who filed their own claims—are published to the `decision_letter_availability` topic. The complete input record structure is preserved in the output, with filtering criteria ensuring high data quality and relevance for downstream consumers. 
