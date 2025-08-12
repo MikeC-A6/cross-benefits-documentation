@@ -54,3 +54,20 @@
 ### TL;DR
 - **Root cause**: Date-only strings from Lighthouse are parsed as UTC and then formatted in local time on the frontend → calendar date shifts back in US time zones.
 - **Fix**: Either (a) frontend: parse date-only values as local calendar dates; or (b) backend: return zone-aware timestamps (e.g., noon UTC) to preserve the calendar date across time zones.
+
+### Validation: VBMS provided datetime; Lighthouse provided date-only
+
+- **VBMS (legacy) evidence**
+  - The VBMS downloader returns both `received_at` and `upload_date` and sorts by `received_at`, which is a time value (not just a string date). See the legacy downloader:
+    - `lib/claim_letters/claim_letter_downloader.rb`: [link](https://github.com/department-of-veterans-affairs/vets-api/blob/master/lib/claim_letters/claim_letter_downloader.rb)
+  - The fixture used by the legacy endpoint shows `received_at` and `upload_date` fields. Although the fixture values are in `YYYY-MM-DD` format, these are mapped into time objects by the app code and were historically emitted to the frontend as timestamps. Fixture example entries (note `received_at` and `upload_date`):
+    - `spec/fixtures/claim_letter/claim_letter_list.json`: [link](https://github.com/department-of-veterans-affairs/vets-api/blob/master/spec/fixtures/claim_letter/claim_letter_list.json)
+
+- **Lighthouse (new) evidence**
+  - Lighthouse `claim-letters/search` returns `receivedAt` as a date-only value and `uploadedDateTime` as an ISO datetime. The provider maps `receivedAt` → `received_at` via `Time.zone.parse(letter['receivedAt'])` and passes it downstream:
+    - `lib/claim_letters/providers/claim_letters/lighthouse_claim_letters_provider.rb` (mapping and parse): [link](https://github.com/department-of-veterans-affairs/vets-api/blob/master/lib/claim_letters/providers/claim_letters/lighthouse_claim_letters_provider.rb)
+  - Because `receivedAt` is date-only, parsing yields a midnight instant (typically UTC). On the web, the formatter uses `parseISO` + local `format`, which shifts the visible date for US time zones.
+
+- **Conclusion**
+  - VBMS path produced a date+time (zone-aware when serialized to the client) that preserved the intended calendar date during client formatting.
+  - Lighthouse path introduced a date-only `receivedAt`, which—when parsed and then formatted in local time—causes the observed 1-day earlier display for users behind UTC.
