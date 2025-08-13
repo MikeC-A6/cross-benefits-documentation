@@ -4,6 +4,22 @@ Link: [PR #23165 – [Event Bus Gateway] Adds logic to retry temporary-failure n
 
 ---
 
+## Plain-language description and summary
+
+This work improves the reliability of decision-letter emails sent through the Event Bus Gateway. Sometimes VA Notify reports a temporary delivery failure (for example, the recipient’s mailbox is momentarily unavailable). Previously, we logged such failures but did not try again. With this change, when VA Notify signals a temporary failure, we schedule the email to be retried in about an hour. This raises the chances that Veterans still receive their important notifications even if the first attempt encounters a short-lived issue.
+
+How it works in practice:
+- Each initial email send creates a record that includes the VA Notify message id and template id, linked to the Veteran’s `UserAccount` (via ICN).
+- If VA Notify later calls back with a temporary failure, we look up that record using the Notify id, resolve the Veteran again, and re-queue the email for a delayed retry.
+- All of this is gated behind a feature flag, so it can be turned on or off safely.
+
+Notes and cautions:
+- We avoid storing the BGS participant id directly due to privacy posture; instead we store the linkage via ICN and look up the participant id at retry time.
+- A retry delay is implemented (1 hour). A maximum retry count and backoff policy is recommended before broad rollout to prevent excessive retries.
+- Tests were added; a new model (`EventBusGatewayNotification`) persists the original send details needed for safe retry.
+
+In short: temporary email failures are now retried later, in a controlled, observable, and feature-flagged manner to improve delivery outcomes for Veterans.
+
 ## Overview
 
 - **Goal**: Add retry logic for VA Notify email notifications marked as `temporary-failure` for Event Bus Gateway decision-letter emails.
