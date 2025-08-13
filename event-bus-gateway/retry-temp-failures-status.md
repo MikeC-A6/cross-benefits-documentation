@@ -64,7 +64,7 @@ sequenceDiagram
     MPI-->>CB: profile(participant_id)
     CB->>Q: perform_in(1h, participant_id, template_id)
   else disabled or lookup failed
-    CB->>CB: log + metrics; stop
+    CB->>CB: log and metrics, then stop
   end
 ```
 
@@ -73,16 +73,16 @@ sequenceDiagram
 ```mermaid
 flowchart TD
   A[Notify callback received] --> B{status == temporary-failure?}
-  B -- No --> Z[Log + metrics; stop]
+  B -- No --> Z[Log and metrics - stop]
   B -- Yes --> C{Feature flag enabled?}
   C -- No --> Z
   C -- Yes --> D[Find EBG by va_notify_id]
-  D -->|not found| Z2[Log missing EBG; stop]
+  D -->|not found| Z2[Log missing EBG - stop]
   D -->|found| E{user_account present?}
-  E -- No --> Z3[Log missing user_account; stop]
+  E -- No --> Z3[Log missing user account - stop]
   E -- Yes --> F[Find MPI profile by ICN]
-  F -->|not found| Z4[Log MPI lookup failed; stop]
-  F -->|found| G[perform_in 1h LetterReadyEmailJob(participant_id, template_id)]
+  F -->|not found| Z4[Log MPI lookup failed - stop]
+  F -->|found| G[Schedule perform_in 1h for email job]
 ```
 
 ### Minimal data model
