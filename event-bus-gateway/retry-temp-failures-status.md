@@ -18,6 +18,92 @@ References: [PR #23165](https://github.com/department-of-veterans-affairs/vets-a
 
 ---
 
+## Visual Diagrams (Mermaid)
+
+### End-to-end send flow (initial email)
+
+```mermaid
+sequenceDiagram
+  participant EB as Event Bus
+  participant Q as Sidekiq Queue
+  participant J as LetterReadyEmailJob
+  participant BGS as BGS::People
+  participant MPI as MPI::Service
+  participant VAN as VA Notify
+  participant DB as DB
+
+  EB->>Q: enqueue LetterReadyEmailJob(participant_id, template_id)
+  Q->>J: perform()
+  J->>BGS: find_person_by_ptcpnt_id(participant_id)
+  BGS-->>J: person(first_nm,last_nm,brthdy_dt,ssn_nbr)
+  J->>MPI: find_profile_by_attributes(first,last,birth_date,ssn)
+  MPI-->>J: profile(icn)
+  J->>VAN: send_email(PID, template_id, personalisation)
+  VAN-->>J: response(id)
+  J->>DB: create EventBusGatewayNotification(user_account_id, template_id, va_notify_id)
+  DB-->>J: saved
+```
+
+### VA Notify callback and retry decision
+
+```mermaid
+sequenceDiagram
+  participant VAN as VA Notify
+  participant CB as VANotifyEmailStatusCallback
+  participant DB as DB
+  participant MPI as MPI::Service
+  participant Q as Sidekiq Queue
+  participant J as LetterReadyEmailJob
+
+  VAN->>CB: POST callback (status=temporary-failure, id)
+  CB->>CB: check Flipper(:event_bus_gateway_retry_emails)
+  alt retry enabled
+    CB->>DB: find_by(va_notify_id: id)
+    DB-->>CB: ebg_noti
+    CB->>MPI: find_profile_by_identifier(ICN)
+    MPI-->>CB: profile(participant_id)
+    CB->>Q: perform_in(1h, participant_id, template_id)
+  else disabled or lookup failed
+    CB->>CB: log + metrics; stop
+  end
+```
+
+### Retry decision with guard rails
+
+```mermaid
+flowchart TD
+  A[Notify callback received] --> B{status == temporary-failure?}
+  B -- No --> Z[Log + metrics; stop]
+  B -- Yes --> C{Feature flag enabled?}
+  C -- No --> Z
+  C -- Yes --> D[Find EBG by va_notify_id]
+  D -->|not found| Z2[Log missing EBG; stop]
+  D -->|found| E{user_account present?}
+  E -- No --> Z3[Log missing user_account; stop]
+  E -- Yes --> F[Find MPI profile by ICN]
+  F -->|not found| Z4[Log MPI lookup failed; stop]
+  F -->|found| G[perform_in 1h LetterReadyEmailJob(participant_id, template_id)]
+```
+
+### Minimal data model
+
+```mermaid
+classDiagram
+  class UserAccount {
+    +id
+    +icn
+  }
+  class EventBusGatewayNotification {
+    +id
+    +user_account_id
+    +template_id
+    +va_notify_id
+    +retry_count?
+    +last_retry_at?
+  }
+  UserAccount "1" -- "many" EventBusGatewayNotification : has
+```
+
 ## History and Timeline
 
 - 2025-07-18 15:35 UTC: PR opened as Draft by @iandonovan. Notes reference a prior PR creating the table and call out PII concerns regarding storing `participant_id`.
